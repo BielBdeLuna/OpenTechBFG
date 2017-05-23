@@ -1765,6 +1765,8 @@ idPlayer::idPlayer():
 	memset( pdaHasBeenRead, 0, sizeof( pdaHasBeenRead ) );
 	memset( videoHasBeenViewed, 0, sizeof( videoHasBeenViewed ) );
 	memset( audioHasBeenHeard, 0, sizeof( audioHasBeenHeard ) );
+	memset( &weaponZoom, 0, sizeof( weaponZoom ) ); // New
+	memset(	projectileType, 0, sizeof(projectileType) );
 }
 
 /*
@@ -1851,6 +1853,8 @@ void idPlayer::Init()
 	oldButtons				= 0;
 	oldImpulseSequence		= 0;
 	
+	memset( &weaponZoom, 0, sizeof( weaponZoom ) ); // New
+
 	currentWeapon			= -1;
 	idealWeapon				= -1;
 	previousWeapon			= -1;
@@ -2369,6 +2373,8 @@ void idPlayer::Spawn()
 		weapon.GetEntity()->ForceAmmoInClip();
 	}
 	
+	memset(	projectileType, 0, sizeof(projectileType) );
+
 }
 
 /*
@@ -2557,6 +2563,14 @@ void idPlayer::Save( idSaveGame* savefile ) const
 	savefile->WriteBool( gibsLaunched );
 	savefile->WriteVec3( gibsDir );
 	
+	weaponZoom_s flags = weaponZoom;			// Save the weapon Zoom Info
+	LittleBitField( &flags, sizeof( flags ) );
+	savefile->Write( &flags, sizeof( flags ) );
+
+	for( i = 0; i < MAX_WEAPONS; i++ ) {
+		savefile->WriteByte( projectileType[ i ] );
+	}
+
 	savefile->WriteFloat( zoomFov.GetStartTime() );
 	savefile->WriteFloat( zoomFov.GetDuration() );
 	savefile->WriteFloat( zoomFov.GetStartValue() );
@@ -2864,6 +2878,14 @@ void idPlayer::Restore( idRestoreGame* savefile )
 	savefile->ReadBool( gibsLaunched );
 	savefile->ReadVec3( gibsDir );
 	
+	// Remember the order of saving this info...
+	savefile->Read( &weaponZoom, sizeof( weaponZoom ) );
+	LittleBitField( &weaponZoom, sizeof( weaponZoom ) );
+
+	for( i = 0; i < MAX_WEAPONS; i++ ) {
+		savefile->ReadByte( projectileType[ i ] );
+	}
+
 	savefile->ReadFloat( set );
 	zoomFov.SetStartTime( set );
 	savefile->ReadFloat( set );

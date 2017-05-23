@@ -45,6 +45,7 @@ If you have questions concerning this license or the applicable additional terms
 #include "../idlib/math/Matrix.h"
 #include "../idlib/math/Vector.h"
 #include "../renderer/RenderWorld.h"
+#include "../d3xp/Tracer.h"
 
 namespace BFG
 {
@@ -122,6 +123,8 @@ public :
 	virtual void			ReadFromSnapshot( const idBitMsg& msg );
 	virtual bool			ClientReceiveEvent( int event, int time, const idBitMsg& msg );
 	
+	void					setTracerEffect( dnTracerEffect *effect) { tracerEffect = effect; }
+
 	void					QueueToSimulate( int startTime );
 	virtual void			SimulateProjectileFrame( int msec, int endTime );
 	virtual void			PostSimulate( int endTime );
@@ -148,8 +151,11 @@ protected:
 		bool				randomShaderSpin			: 1;
 		bool				isTracer					: 1;
 		bool				noSplashDamage				: 1;
+		bool				impact_fx_played			: 1; // keeps track of fx played on collided body - BY JCD
 	} projectileFlags;
 	
+	dnTracerEffect*			tracerEffect;
+
 	bool					launchedFromGrabber;
 	
 	float					thrust;
@@ -190,6 +196,8 @@ private:
 	idVec3					launchOrigin;
 	idMat3					launchAxis;
 	
+	const idDeclEntityDef	*damageDef; // stores Damage Def -- By Clone JCD
+
 	void					AddDefaultDamageEffect( const trace_t& collision, const idVec3& velocity );
 	void					AddParticlesAndLight();
 	
@@ -373,6 +381,9 @@ private:
 	idPhysics_RigidBody		physicsObj;
 	const idDeclParticle* 	smokeFly;
 	int						smokeFlyTime;
+	int						nextSoundTime;		// BY Clone JCD
+	int						soundTimeDifference;	// BY Clone JCD
+	bool					continuousSmoke;		//By Clone JCD
 	const idSoundShader* 	sndBounce;
 	
 	

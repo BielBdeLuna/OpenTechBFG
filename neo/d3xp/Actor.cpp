@@ -1992,7 +1992,7 @@ bool idActor::UpdateAnimationControllers()
 idActor::RemoveAttachments
 ================
 */
-void idActor::RemoveAttachments()
+void idActor::RemoveAttachments()gibHealth
 {
 	int i;
 	idEntity* ent;
@@ -2702,7 +2702,11 @@ void idActor::Damage( idEntity* inflictor, idEntity* attacker, const idVec3& dir
 			}
 			
 			Killed( inflictor, attacker, damage, dir, location );
-			if( ( health < -20 ) && spawnArgs.GetBool( "gib" ) && damageDef->GetBool( "gib" ) )
+
+			//Improved Gibbing System by Clone JC Denton
+			int healthToGib = spawnArgs.GetInt ( "gibHealth", -20 ); // GibHealth is suppossed to be declared in entityDef if not it defaults to -20
+
+			if( ( health < healthToGib ) && spawnArgs.GetBool( "gib" ) && damageDef->GetBool( "gib" ) )
 			{
 				Gib( dir, damageDefName );
 			}

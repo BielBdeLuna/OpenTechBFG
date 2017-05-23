@@ -152,7 +152,7 @@ public:
 	virtual void			AddForce( idEntity* ent, int id, const idVec3& point, const idVec3& force );
 	
 	virtual	void			Damage( idEntity* inflictor, idEntity* attacker, const idVec3& dir, const char* damageDefName, const float damageScale, const int location );
-	virtual void			AddDamageEffect( const trace_t& collision, const idVec3& velocity, const char* damageDefName );
+	virtual void			AddDamageEffect( const trace_t &collision, const idVec3 &velocity, const char *damageDefName, idEntity *soundEnt=NULL );
 	
 	void					SetCombatModel();
 	idClipModel* 			GetCombatModel() const;

@@ -190,6 +190,9 @@ void idMultiModelAF::Think()
 {
 	RunPhysics();
 	Present();
+	if ( thinkFlags & TH_UPDATEWOUNDPARTICLES ) {
+			UpdateParticles();
+	}
 }
 
 
@@ -473,13 +476,13 @@ void idAFAttachment::Damage( idEntity* inflictor, idEntity* attacker, const idVe
 idAFAttachment::AddDamageEffect
 ================
 */
-void idAFAttachment::AddDamageEffect( const trace_t& collision, const idVec3& velocity, const char* damageDefName )
+void idAFAttachment::AddDamageEffect( const trace_t &collision, const idVec3 &velocity, const char *damageDefName, idEntity *soundEnt )
 {
 	if( body )
 	{
 		trace_t c = collision;
 		c.c.id = JOINT_HANDLE_TO_CLIPMODEL_ID( attachJoint );
-		body->AddDamageEffect( c, velocity, damageDefName );
+		body->AddDamageEffect( c, velocity, damageDefName, soundEnt );
 	}
 }
 
@@ -555,10 +558,6 @@ idAfAttachment::Think
 void idAFAttachment::Think()
 {
 	idAnimatedEntity::Think();
-	if( thinkFlags & TH_UPDATEPARTICLES )
-	{
-		UpdateDamageEffects();
-	}
 }
 
 /*
@@ -760,6 +759,10 @@ void idAFEntity_Base::Think()
 	{
 		Present();
 		LinkCombat();
+	}
+	if (thinkFlags & TH_UPDATEWOUNDPARTICLES)
+	{
+		UpdateDamageEffects();
 	}
 }
 

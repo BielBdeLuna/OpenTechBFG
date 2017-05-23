@@ -882,6 +882,11 @@ void idBarrel::Think()
 	}
 	
 	BarrelThink();
+
+	if ( thinkFlags & TH_UPDATEWOUNDPARTICLES )
+	{
+		UpdateParticles();
+	}
 }
 
 /*
@@ -1124,6 +1129,11 @@ void idExplodingBarrel::Think()
 {
 	idBarrel::BarrelThink();
 	
+	if ( thinkFlags & TH_UPDATEWOUNDPARTICLES )
+	{
+		UpdateParticles();
+	}
+
 	UpdateLight();
 	
 	if( !common->IsClient() && state != BURNING && state != EXPLODING )
@@ -1132,7 +1142,7 @@ void idExplodingBarrel::Think()
 		return;
 	}
 	
-	if( particleModelDefHandle >= 0 )
+	if ( particleModelDefHandle >= 0 && state == BURNING )
 	{
 		particleRenderEntity.origin = physicsObj.GetAbsBounds().GetCenter();
 		particleRenderEntity.axis = mat3_identity;
@@ -1303,7 +1313,7 @@ idExplodingBarrel::Killed
 void idExplodingBarrel::Killed( idEntity* inflictor, idEntity* attacker, int damage, const idVec3& dir, int location )
 {
 
-	if( IsHidden() || state == EXPLODING || state == BURNING )
+	if ( IsHidden() || state == EXPLODING )
 	{
 		return;
 	}
@@ -1315,7 +1325,9 @@ void idExplodingBarrel::Killed( idEntity* inflictor, idEntity* attacker, int dam
 	}
 	
 	float f = spawnArgs.GetFloat( "burn" );
-	if( f > 0.0f && state == NORMAL )
+	int explodeHealth = spawnArgs.GetInt( "explode_health" );
+
+	if ( f > 0.0f && state == NORMAL && health > explodeHealth )
 	{
 		state = BURNING;
 		PostEventSec( &EV_Explode, f );
@@ -1325,6 +1337,11 @@ void idExplodingBarrel::Killed( idEntity* inflictor, idEntity* attacker, int dam
 	}
 	else
 	{
+		if( state == BURNING && health > explodeHealth )
+		{
+			return;
+		}
+
 		state = EXPLODING;
 		if( common->IsServer() )
 		{
@@ -1339,7 +1356,7 @@ void idExplodingBarrel::Killed( idEntity* inflictor, idEntity* attacker, int dam
 	
 	// do this before applying radius damage so the ent can trace to any damagable ents nearby
 	Hide();
-	physicsObj.SetContents( 0 );
+	BecomeInactive(TH_PHYSICS); // This causes the physics not to update after explosion
 	
 	const char* splash = spawnArgs.GetString( "def_splash_damage", "damage_explosion" );
 	if( splash != NULL && *splash != '\0' )
@@ -1387,6 +1404,7 @@ void idExplodingBarrel::Killed( idEntity* inflictor, idEntity* attacker, int dam
 		kv = spawnArgs.MatchPrefix( "def_debris", kv );
 	}
 	
+	physicsObj.SetContents( 0 );
 	physicsObj.PutToRest();
 	CancelEvents( &EV_Explode );
 	CancelEvents( &EV_Activate );
@@ -1429,14 +1447,7 @@ void idExplodingBarrel::Damage( idEntity* inflictor, idEntity* attacker, const i
 		gameLocal.Error( "Unknown damageDef '%s'\n", damageDefName );
 		return;
 	}
-	if( damageDef->FindKey( "radius" ) && GetPhysics()->GetContents() != 0 && GetBindMaster() == NULL )
-	{
-		PostEventMS( &EV_Explode, 400 );
-	}
-	else
-	{
-		idEntity::Damage( inflictor, attacker, dir, damageDefName, damageScale, location );
-	}
+	idEntity::Damage( inflictor, attacker, dir, damageDefName, damageScale, location );
 }
 
 /*

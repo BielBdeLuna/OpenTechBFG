@@ -738,6 +738,10 @@ public:
 	bool					IsRespawning();
 	bool					IsInTeleport();
 	
+	void					SetWeaponZoom( bool Status );
+	void					SetProjectileType( int type );
+	int						GetProjectileType( void );
+
 	int						GetSkinIndex() const
 	{
 		return skinIndex;
@@ -978,6 +982,13 @@ private:
 	int						serverOverridePositionTime;
 	int						clientFireCount;
 	
+	struct weaponZoom_s {
+		bool				oldZoomStatus	: 1;
+		bool				startZoom		: 1;
+	} weaponZoom;
+
+	byte					projectileType[ MAX_WEAPONS ];
+
 	idPlayerIcon			playerIcon;
 	
 	bool					selfSmooth;
@@ -1062,6 +1073,26 @@ private:
 	void					Event_ToggleBloom( int on );
 	void					Event_SetBloomParms( float speed, float intensity );
 };
+
+/*
+==================
+idPlayer::setZoom
+
+Called By Weapon script, used for weapon zooming
+==================
+*/
+
+ID_INLINE void idPlayer::SetWeaponZoom( bool status ) {
+	weaponZoom.startZoom = status;
+}
+
+ID_INLINE void idPlayer::SetProjectileType( int type ) {
+	projectileType[ currentWeapon ] = type;
+}
+
+ID_INLINE int idPlayer::GetProjectileType( void ) {
+	return projectileType[ currentWeapon ];
+}
 
 ID_INLINE bool idPlayer::IsRespawning()
 {
