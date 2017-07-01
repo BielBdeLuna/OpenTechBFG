@@ -1992,7 +1992,7 @@ bool idActor::UpdateAnimationControllers()
 idActor::RemoveAttachments
 ================
 */
-void idActor::RemoveAttachments()gibHealth
+void idActor::RemoveAttachments()
 {
 	int i;
 	idEntity* ent;
@@ -2573,8 +2573,13 @@ void idActor::Damage( idEntity* inflictor, idEntity* attacker, const idVec3& dir
 	}
 	
 	int	damage = damageDef->GetInt( "damage" ) * damageScale;
-	damage = GetDamageForLocation( damage, location );
 	
+	// By Clone JCD For Improved damage behaviour
+	if (health > 0) // Make sure that an actor is alive when we go for Damage location
+	{
+		damage = GetDamageForLocation( damage, location );
+	}
+
 	// inform the attacker that they hit someone
 	if( attacker )
 	{

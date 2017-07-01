@@ -849,9 +849,9 @@ void idAFEntity_Base::RemoveBindConstraints()
 idAFEntity_Base::AddDamageEffect
 ================
 */
-void idAFEntity_Base::AddDamageEffect( const trace_t& collision, const idVec3& velocity, const char* damageDefName )
+void idAFEntity_Base::AddDamageEffect( const trace_t& collision, const idVec3& velocity, const char* damageDefName, idEntity *soundEnt )
 {
-	idAnimatedEntity::AddDamageEffect( collision, velocity, damageDefName );
+	idAnimatedEntity::AddDamageEffect( collision, velocity, damageDefName, soundEnt );
 }
 
 /*
@@ -1308,7 +1308,16 @@ void idAFEntity_Gibbable::Damage( idEntity* inflictor, idEntity* attacker, const
 		return;
 	}
 	idAFEntity_Base::Damage( inflictor, attacker, dir, damageDefName, damageScale, location );
-	if( health < -20 && spawnArgs.GetBool( "gib" ) )
+
+    // New Gibbing System By Clone JCD
+	int healthToGib = spawnArgs.GetInt ("gibHealth"); // GibHealth is suppossed to be declared in entityDef
+	// If its not there, set it to default value
+	if (healthToGib == 0)
+	{
+		healthToGib = -20 ;
+	}
+
+	if( health < healthToGib && spawnArgs.GetBool( "gib" ) )
 	{
 		Gib( dir, damageDefName );
 	}

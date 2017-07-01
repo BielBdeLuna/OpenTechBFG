@@ -55,7 +55,9 @@ void dnTracer::Think( void )  {
 
 	owner->GetRenderEntity()->axis		= axis;
 	//owner->GetRenderEntity()->origin	= weaponMuzzleOrigin + idMath::Sqrt(projectileDist) * owner->GetRenderEntity()->.axis[2];
-	owner->GetRenderEntity()->origin	= weaponMuzzleOrigin + projectileDist * idMath::RSqrt(projectileDist) * owner->GetRenderEntity()->axis[2]; // this is faster than commented line above
+	//owner->GetRenderEntity()->origin	= weaponMuzzleOrigin + projectileDist * idMath::RSqrt(projectileDist) * owner->GetRenderEntity()->axis[2]; // this is faster than commented line above
+	owner->GetRenderEntity()->origin	= weaponMuzzleOrigin + projectileDist * idMath::Sqrt(projectileDist) * owner->GetRenderEntity()->axis[2]; // this is faster than commented line above
+
 }
 
 

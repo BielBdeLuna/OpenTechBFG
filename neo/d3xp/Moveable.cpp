@@ -1286,12 +1286,6 @@ void idExplodingBarrel::ExplodingEffects()
 		Show();
 	}
 	
-	temp = spawnArgs.GetString( "model_detonate" );
-	if( *temp != '\0' )
-	{
-		AddParticles( temp, false );
-	}
-	
 	temp = spawnArgs.GetString( "mtr_lightexplode" );
 	if( *temp != '\0' )
 	{
@@ -1302,6 +1296,13 @@ void idExplodingBarrel::ExplodingEffects()
 	if( *temp != '\0' )
 	{
 		gameLocal.ProjectDecal( GetPhysics()->GetOrigin(), GetPhysics()->GetGravity(), 128.0f, true, 96.0f, temp );
+	}
+	
+	// put the explosion particle effect to the end -- By Clone JCD
+	temp = spawnArgs.GetString( "model_detonate" );
+	if( *temp != '\0' )
+	{
+		AddParticles( temp, false );
 	}
 }
 

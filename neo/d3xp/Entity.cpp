@@ -762,7 +762,7 @@ idEntity::~idEntity()
 	Unbind();
 	QuitTeam();
 	
-	gameLocal.RemoveEntityFromHash( name.c_str(), this )DENTON;
+	gameLocal.RemoveEntityFromHash( name.c_str(), this );
 	
 	delete renderView;
 	renderView = NULL;
@@ -4393,8 +4393,7 @@ bool idEntity::HandleGuiCommands( idEntity* entityGui, const char* cmds )
 				{
 					int score = entityGui->renderEntity.gui[0]->State().GetInt( "score" );
 					score += atoi( token2 );
-					entityGui->renderEntity.gui[0]->Svoid idEntity::AddDamageEffect( const trace_t &collision, const idVec3 &velocity, const char *damageDefName, idEntity *soundEnt ) {
-etStateInt( "score", score );
+					entityGui->renderEntity.gui[0]->SetStateInt( "score", score );
 					if( gameLocal.GetLocalPlayer() && score >= 25000 )
 					{
 						gameLocal.GetLocalPlayer()->GetAchievementManager().EventCompletesAchievement( ACHIEVEMENT_SCORE_25000_TURKEY_PUNCHER );
@@ -4436,8 +4435,7 @@ etStateInt( "score", score );
 			{
 				// not handled there see if entity or any of its targets can handle it
 				// this will only work for one target atm
-				if( entityGui->HandleSingleGuiCommand(void idEntity::AddDamageEffect( const trace_t &collision, const idVec3 &velocity, const char *damageDefName, idEntity *soundEnt ) {
- entityGui, &src ) )
+				if( entityGui->HandleSingleGuiCommand( entityGui, &src ) )
 				{
 					continue;
 				}
@@ -4749,7 +4747,7 @@ void idEntity::UpdateParticles( void ) {
 		if (de->time == -1){		// This key fixes an issue where some particles are not at all emitted
 			de->time = gameLocal.time;
 		}
-		if ( !gameLocal.smokeParticles->EmitSmoke( de->type, de->time, gameLocal.random.CRandomFloat(), origin, dir.ToMat3() ) ) {
+		if ( !gameLocal.smokeParticles->EmitSmoke( de->type, de->time, gameLocal.random.CRandomFloat(), origin, dir.ToMat3(), timeGroup /*_D3XP*/ ) ) {
 			de->time = 0;
 		}
 	}
@@ -6346,6 +6344,7 @@ idAnimatedEntity::idAnimatedEntity()
 {
 	animator.SetEntity( this );
 	damageEffects = NULL;
+	nextBloodPoolTime = 0;
 }
 
 /*
@@ -6587,7 +6586,7 @@ idAnimatedEntity::AddDamageEffect
   Dammage effects track the animating impact position, spitting out particles.
 ==============
 */
-void idAnimatedEntity::AddDamageEffect( const trace_t &collision, const idVec3 &velocity, const char *damageDefName, idEntity *soundEnt = NULL )
+void idAnimatedEntity::AddDamageEffect( const trace_t &collision, const idVec3 &velocity, const char *damageDefName, idEntity* soundEnt = NULL )
 {
 	jointHandle_t jointNum;
 	idVec3 dir;
@@ -6634,16 +6633,10 @@ void idAnimatedEntity::AddLocalDamageEffect( jointHandle_t jointNum, const idVec
 {
 	const char* sound, *splat, *decal, *bleed, *key;
 	damageEffect_t*	de;
-	idVec3 origin, dir;
-	idMat3 axis;
+	idVec3 gravDir;
+	idPhysics *phys;
 	
 	SetTimeState ts( timeGroup );
-	
-	axis = renderEntity.joints[jointNum].ToMat3() * renderEntity.axis;
-	origin = renderEntity.origin + renderEntity.joints[jointNum].ToVec3() * renderEntity.axis;
-	
-	origin = origin + localOrigin * axis;
-	dir = localDir * axis;
 	
 	int type = collisionMaterial->GetSurfaceType();
 	if( type == SURFTYPE_NONE )
@@ -6667,13 +6660,16 @@ void idAnimatedEntity::AddLocalDamageEffect( jointHandle_t jointNum, const idVec
 	if( *sound == '\0' )
 	{
 		sound = def->dict.GetString( "snd_impact" ); // default sound 2
+	}
 
 	if( *sound != '\0' )
 	{
-		if( soundEnt == NULL ) {
+		if( soundEnt == NULL )
+		{
 			StartSoundShader( declManager->FindSound( sound ), SND_CHANNEL_BODY, 0, false, NULL );
 		}
-		else {
+		else
+		{
 			soundEnt->StartSoundShader( declManager->FindSound( sound ), SND_CHANNEL_BODY, 0, false, NULL );
 		}
 	}
@@ -6691,10 +6687,13 @@ void idAnimatedEntity::AddLocalDamageEffect( jointHandle_t jointNum, const idVec
 	}
 	
 	// Create blood pools at feet, Only when alive - By Clone JCD
-	if (health > 0){
+	if (health > 0)
+	{
 		int bloodpoolTime;
 
-		if( gameLocal.time > nextBloodPoolTime ) {  // You can use this condition instead :- if (gameLocal.isNewFrame)
+		// You can use this condition instead :- if (gameLocal.isNewFrame)
+		if( gameLocal.time > nextBloodPoolTime )
+		{
 			key = va( "mtr_bloodPool_%s", materialType );
 			splat = spawnArgs.RandomPrefix( key, gameLocal.random );
 			if( *splat == '\0' )
@@ -6709,7 +6708,9 @@ void idAnimatedEntity::AddLocalDamageEffect( jointHandle_t jointNum, const idVec
 				if( spawnArgs.GetBool("bloodPool_below_origin")  )
 				{
 					gameLocal.BloodSplat( phys->GetOrigin(), gravDir, def->dict.GetFloat ( va ("size_bloodPool_%s", materialType), "64.0f"), splat );
-				} else {
+				}
+				else
+				{
 					gameLocal.BloodSplat( origin, gravDir, def->dict.GetFloat ( va ("size_bloodPool_%s", materialType), "64.0f"), splat );
 				}
 			}
@@ -6739,7 +6740,8 @@ void idAnimatedEntity::AddLocalDamageEffect( jointHandle_t jointNum, const idVec
 		}
 
 		// place a wound overlay on the model
-		if( g_debugDamage.GetBool() ) {
+		if( g_debugDamage.GetBool() )
+		{
 			gameLocal.Printf("\nCollision Material Type: %s", materialType);
 			gameLocal.Printf("\n File: %s", collisionMaterial->GetFileName());
 			gameLocal.Printf("\n material: %s", collisionMaterial->ImageName());
@@ -6759,7 +6761,9 @@ void idAnimatedEntity::AddLocalDamageEffect( jointHandle_t jointNum, const idVec
 		if( *decal != '\0' )
 		{
 			float size;
-			if ( !def->dict.GetFloat( va( "size_wound_%s", materialType ), "6.0", size ) ) { // If Material Specific decal size not found, look for default size
+			// If Material Specific decal size not found, look for default size
+			if ( !def->dict.GetFloat( va( "size_wound_%s", materialType ), "6.0", size ) )
+			{
 				size = def->dict.GetFloat( "size_wound", "6.0" );
 			}
 			ProjectOverlay( origin, dir, size, decal );
@@ -6865,7 +6869,7 @@ void idAnimatedEntity::UpdateDamageEffects()
 			de->time = gameLocal.time;
 		}
 		
-		if( !gameLocal.smokeParticles->EmitSmoke( de->type, de->time, gameLocal.random.CRandomFloat(), origin, dir.ToMat3() ) )
+		if( !gameLocal.smokeParticles->EmitSmoke( de->type, de->time, gameLocal.random.CRandomFloat(), origin, dir.ToMat3(), timeGroup /*_D3XP*/ ) )
 		{
 			de->time = 0;
 		}

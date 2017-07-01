@@ -44,6 +44,8 @@ If you have questions concerning this license or the applicable additional terms
 #include "../d3xp/MultiplayerGame.h"
 #include "../d3xp/Player.h"
 #include "../d3xp/PlayerView.h"
+#include "../d3xp/Moveable.h"
+#include "../d3xp/BrittleFracture.h"
 #include "../d3xp/Projectile.h"
 #include "../d3xp/SmokeParticles.h"
 #include "../d3xp/ai/AI.h"
@@ -152,6 +154,8 @@ idProjectile::idProjectile() :
 	launchedFromGrabber = false;
 	mTouchTriggers		= false;
 	mNoExplodeDisappear = false;
+	damageDef			= NULL;		// new
+
 	memset( &projectileFlags, 0, sizeof( projectileFlags ) );
 	memset( &renderLight, 0, sizeof( renderLight ) );
 	
@@ -336,6 +340,7 @@ void idProjectile::Create( idEntity* owner, const idVec3& start, const idVec3& d
 	smokeFlyTime = 0;
 	
 	damagePower = 1.0f;
+	damageDef = NULL;				// New
 	
 	if( spawnArgs.GetBool( "reset_time_offset", "0" ) )
 	{
@@ -519,6 +524,8 @@ void idProjectile::Launch( const idVec3& start, const idVec3& dir, const idVec3&
 	
 	thruster.SetPosition( &physicsObj, 0, idVec3( GetPhysics()->GetBounds()[ 0 ].x, 0, 0 ) );
 	
+	damageDef = gameLocal.FindEntityDef( spawnArgs.GetString( "def_damage", false ) );
+
 	if( !common->IsClient() || fl.skipReplication )
 	{
 		if( fuse <= 0 )
@@ -547,6 +554,8 @@ void idProjectile::Launch( const idVec3& start, const idVec3& dir, const idVec3&
 		}
 	}
 	
+	const idDict *damageDict = damageDef != NULL ? &damageDef->dict : &spawnArgs;
+
 	if( projectileFlags.isTracer )
 	{
 		StartSound( "snd_tracer", SND_CHANNEL_BODY, 0, false, NULL );
@@ -699,12 +708,12 @@ bool idProjectile::Collide( const trace_t& collision, const idVec3& velocity )
 	
 	const bool isHitscan = spawnArgs.GetBool( "net_instanthit" );
 	
-	// hanlde slow projectiles here.
+	// handle slow projectiles here.
 	if( common->IsClient() && !isHitscan )
 	{
 	
 		// This is a replicated slow projectile, predict the explosion.
-		if( ClientPredictionCollide( this, spawnArgs, collision, velocity, !isHitscan ) )
+		if( ClientPredictionCollide( this, damageDef!=NULL ? damageDef->dict: spawnArgs, collision, velocity, !isHitscan ) )
 		{
 			Explode( collision, NULL );
 			return true;
@@ -796,7 +805,14 @@ bool idProjectile::Collide( const trace_t& collision, const idVec3& velocity )
 	// unlink the clip model because we no longer need it
 	GetPhysics()->UnlinkClip();
 	
-	damageDefName = spawnArgs.GetString( "def_damage" );
+	if (damageDef != NULL)
+	{
+        damageDefName = damageDef->GetName();
+	}
+	else
+	{
+		damageDefName = NULL;
+	}
 	
 	ignore = NULL;
 	
@@ -1804,7 +1820,7 @@ bool idProjectile::ClientReceiveEvent( int event, int time, const idBitMsg& msg 
 			velocity[0] = msg.ReadFloat( 5, 10 );
 			velocity[1] = msg.ReadFloat( 5, 10 );
 			velocity[2] = msg.ReadFloat( 5, 10 );
-			DefaultDamageEffect( this, spawnArgs, collision, velocity );
+			DefaultDamageEffect( this, damageDef!=NULL? damageDef->dict: spawnArgs, collision, velocity ); // new
 			return true;
 		}
 		default:
@@ -3148,7 +3164,7 @@ void idDebris::Launch()
 			PostEventSec( &EV_Fizzle, fuse );
 		}
 	}
-	soundTimeDifference
+
 	StartSound( "snd_fly", SND_CHANNEL_BODY, 0, false, NULL );
 	
 	smokeFly = NULL;

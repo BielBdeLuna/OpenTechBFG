@@ -90,27 +90,56 @@ static const int LIGHTID_VIEW_MUZZLE_FLASH = 100;
 
 class idMoveableItem;
 
+//---------------------------------------- New Particle and light support
+
+struct particleFlags_s {
+	bool		isActive			: 1;		// Is the particle active
+	bool		isSmoke				: 1;		// Is this a smoke particle
+	bool		isContinuous		: 1;		// Is the effect continuous
+	bool		isOffset			: 1;		// Is new Offset needed
+	bool		isDir				: 1;		// Is new Direction needed
+	bool		isOnWorldModel		: 1;		// Is this effect intended for world model only
+	bool		isUpdateJoint		: 1;
+};
+
+struct lightFlags_s {
+	bool		isActive		: 1;		// Is the particle active
+	bool		isAlwaysOn		: 1;		// Is this light always on
+	bool		isOffset		: 1;		// Is new Offset needed
+	bool		isDir			: 1;		// Is new Direction needed
+	bool		isOnWorldModel	: 1;		// Is this light intended for world model only
+};
+
 typedef struct
 {
 	char			name[64];
 	char			particlename[128];
-	bool			active;
 	int				startTime;
 	jointHandle_t	joint;			//The joint on which to attach the particle
-	bool			smoke;			//Is this a smoke particle
 	const idDeclParticle* particle;		//Used for smoke particles
-	idFuncEmitter*  emitter;		//Used for non-smoke particles
+	//idFuncEmitter*  emitter;		//Used for non-smoke particles
+	renderEntity_t 	renderEntity;
+	qhandle_t 		modelDefHandle;
+	idVec3			offset;			//Sometimes you cant find proper joint, then use offset along with muzzle bone
+	idVec3			dir;
+	particleFlags_s particleFlags;	// flags
 } WeaponParticle_t;
 
 typedef struct
 {
 	char			name[64];
-	bool			active;
 	int				startTime;
+	int				endTime;
 	jointHandle_t	joint;
 	int				lightHandle;
 	renderLight_t	light;
+	lightFlags_s	lightFlags;
+	idVec3			offset;			//If weapons does not have bones in proper places for some effect use this
+	idVec3			dir;			//If the desired bone is not pointing in proper direction use this to fix it.
+									// Note that the dir should be vector representing X-axis of the bone.
 } WeaponLight_t;
+
+//----------------------------------------------
 
 class idWeapon : public idAnimatedEntity
 {
@@ -165,6 +194,8 @@ public:
 	void					OwnerDied();
 	void					BeginAttack();
 	void					EndAttack();
+	void					BeginSpecialFunction( bool );	// Added by Clone JCD
+	void					EndSpecialFunction( void );		// Added by Clone JCD
 	bool					IsReady() const;
 	bool					IsReloading() const;
 	bool					IsHolstered() const;
@@ -258,6 +289,8 @@ private:
 	// script control
 	idScriptBool			WEAPON_ATTACK;
 	idScriptBool			WEAPON_RELOAD;
+	idScriptBool			WEAPON_SPECIAL;  // For weapon special function, added by clone JCD
+	idScriptBool			WEAPON_SPECIAL_HOLD;  // For weapon special function, added by clone JCD
 	idScriptBool			WEAPON_NETRELOAD;
 	idScriptBool			WEAPON_NETENDRELOAD;
 	idScriptBool			WEAPON_NETFIRING;
@@ -421,8 +454,14 @@ private:
 	void					InitWorldModel( const idDeclEntityDef* def );
 	void					MuzzleRise( idVec3& origin, idMat3& axis );
 	void					UpdateNozzleFx();
+	void					InitWeaponFx( void );
+	void					StopWeaponFx( void );
+	void					UpdateWeaponFx( void );
+
+	bool					ChangeProjectileDef( int number );// New
+
 	void					UpdateFlashPosition();
-	
+
 	// script events
 	void					Event_Clear();
 	void					Event_GetOwner();
@@ -461,6 +500,15 @@ private:
 	void					Event_NetReload();
 	void					Event_IsInvisible();
 	void					Event_NetEndReload();
+	void					Event_SetZoom( int status );	//New
+
+	void					Event_GetProjectileType( void );// New
+	void					Event_ChangeProjectileDef( int number );// New
+	void					Event_StartWeaponParticle( const char* name ); // New
+	void					Event_StopWeaponParticle( const char* name );// New
+
+	void					Event_StartWeaponLight( const char* name );// New
+	void					Event_StopWeaponLight( const char* name );// New
 	
 	idGrabber				grabber;
 	int						grabberState;
@@ -473,12 +521,6 @@ private:
 	
 	void					Event_StartWeaponSmoke();
 	void					Event_StopWeaponSmoke();
-	
-	void					Event_StartWeaponParticle( const char* name );
-	void					Event_StopWeaponParticle( const char* name );
-	
-	void					Event_StartWeaponLight( const char* name );
-	void					Event_StopWeaponLight( const char* name );
 };
 
 ID_INLINE bool idWeapon::IsLinked()

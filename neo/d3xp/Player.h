@@ -897,6 +897,7 @@ private:
 	int						currentWeapon;
 	idPredictedValue< int >	idealWeapon;
 	int						previousWeapon;
+	int 					quickWeapon;		// Since previousWeapon does not work in a best way for quick swap - Clone JCD
 	int						weaponSwitchTime;
 	bool					weaponEnabled;
 	
@@ -999,6 +1000,7 @@ private:
 	
 	void					StopFiring();
 	void					FireWeapon();
+	void					WeaponSpecialFunction( bool keyTapped ); // New
 	void					Weapon_Combat();
 	void					Weapon_NPC();
 	void					Weapon_GUI();
@@ -1072,6 +1074,7 @@ private:
 	void					Event_StopHelltime( int mode );
 	void					Event_ToggleBloom( int on );
 	void					Event_SetBloomParms( float speed, float intensity );
+	void					Event_GetImpulseKey( void ); // new
 };
 
 /*

@@ -217,6 +217,8 @@ const idEventDef EV_Player_StopHelltime( "stopHelltime", "d" );
 const idEventDef EV_Player_ToggleBloom( "toggleBloom", "d" );
 const idEventDef EV_Player_SetBloomParms( "setBloomParms", "ff" );
 
+const idEventDef EV_Player_GetImpulseKey( "getImpulseKey", NULL, 'd' ); // Added By Clone JC Denton
+
 CLASS_DECLARATION( idActor, idPlayer )
 EVENT( EV_Player_GetButtons,			idPlayer::Event_GetButtons )
 EVENT( EV_Player_GetMove,				idPlayer::Event_GetMove )
@@ -245,6 +247,7 @@ EVENT( EV_Player_StartWarp,				idPlayer::Event_StartWarp )
 EVENT( EV_Player_StopHelltime,			idPlayer::Event_StopHelltime )
 EVENT( EV_Player_ToggleBloom,			idPlayer::Event_ToggleBloom )
 EVENT( EV_Player_SetBloomParms,			idPlayer::Event_SetBloomParms )
+EVENT( EV_Player_GetImpulseKey,			idPlayer::Event_GetImpulseKey )	// Added By Clone JCD
 END_CLASS
 
 const int MAX_RESPAWN_TIME = 10000;
@@ -1651,6 +1654,7 @@ idPlayer::idPlayer():
 	
 	currentWeapon			= -1;
 	previousWeapon			= -1;
+	quickWeapon				= -1; //new
 	weaponSwitchTime		=  0;
 	weaponEnabled			= true;
 	weapon_soulcube			= -1;
@@ -1765,6 +1769,7 @@ idPlayer::idPlayer():
 	memset( pdaHasBeenRead, 0, sizeof( pdaHasBeenRead ) );
 	memset( videoHasBeenViewed, 0, sizeof( videoHasBeenViewed ) );
 	memset( audioHasBeenHeard, 0, sizeof( audioHasBeenHeard ) );
+
 	memset( &weaponZoom, 0, sizeof( weaponZoom ) ); // New
 	memset(	projectileType, 0, sizeof(projectileType) );
 }
@@ -1858,6 +1863,7 @@ void idPlayer::Init()
 	currentWeapon			= -1;
 	idealWeapon				= -1;
 	previousWeapon			= -1;
+	quickWeapon				= -1; //new
 	weaponSwitchTime		= 0;
 	weaponEnabled			= true;
 	weapon_soulcube			= SlotForWeapon( "weapon_soulcube" );
@@ -1940,6 +1946,7 @@ void idPlayer::Init()
 	SetupWeaponEntity();
 	currentWeapon = -1;
 	previousWeapon = -1;
+	quickWeapon	= -1; //new
 	
 	heartRate = BASE_HEARTRATE;
 	AdjustHeartRate( BASE_HEARTRATE, 0.0f, 0.0f, true );
@@ -2545,6 +2552,7 @@ void idPlayer::Save( idSaveGame* savefile ) const
 	savefile->WriteInt( currentWeapon );
 	savefile->WriteInt( idealWeapon.Get() );
 	savefile->WriteInt( previousWeapon );
+	savefile->WriteInt( quickWeapon );      //new
 	savefile->WriteInt( weaponSwitchTime );
 	savefile->WriteBool( weaponEnabled );
 	
@@ -2567,7 +2575,8 @@ void idPlayer::Save( idSaveGame* savefile ) const
 	LittleBitField( &flags, sizeof( flags ) );
 	savefile->Write( &flags, sizeof( flags ) );
 
-	for( i = 0; i < MAX_WEAPONS; i++ ) {
+	for( i = 0; i < MAX_WEAPONS; i++ )
+	{
 		savefile->WriteByte( projectileType[ i ] );
 	}
 
@@ -2860,6 +2869,7 @@ void idPlayer::Restore( idRestoreGame* savefile )
 	idealWeapon.Set( savedIdealWeapon );
 	
 	savefile->ReadInt( previousWeapon );
+	savefile->ReadInt( quickWeapon );   //new
 	savefile->ReadInt( weaponSwitchTime );
 	savefile->ReadBool( weaponEnabled );
 	
@@ -2882,7 +2892,8 @@ void idPlayer::Restore( idRestoreGame* savefile )
 	savefile->Read( &weaponZoom, sizeof( weaponZoom ) );
 	LittleBitField( &weaponZoom, sizeof( weaponZoom ) );
 
-	for( i = 0; i < MAX_WEAPONS; i++ ) {
+	for( i = 0; i < MAX_WEAPONS; i++ )
+	{
 		savefile->ReadByte( projectileType[ i ] );
 	}
 
@@ -3981,11 +3992,11 @@ void idPlayer::FireWeapon()
 				}
 				SelectWeapon( previousWeapon, false );
 			}
-			if( ( weapon_bloodstone >= 0 ) && ( currentWeapon == weapon_bloodstone ) && inventory.weapons & ( 1 << weapon_bloodstone_active1 ) && weapon.GetEntity()->GetStatus() == WP_READY )
+			if( ( weapon_bloodstone >= 0 ) && ( currentWeapon == weapon_bloodstone ) && ( inventory.weapons & ( 1 << weapon_bloodstone_active1 ) ) && weapon.GetEntity()->GetStatus() == WP_READY )
 			{
 				// tell it to switch to the previous weapon. Only do this once to prevent
 				// weapon toggling messing up the previous weapon
-				if( idealWeapon == weapon_bloodstone )
+				if( idealWeapon.Get() == weapon_bloodstone )
 				{
 					if( previousWeapon == weapon_bloodstone || previousWeapon == -1 )
 					{
@@ -5199,6 +5210,28 @@ void idPlayer::Reload()
 
 /*
 ===============
+idPlayer::WeaponSpecialFunction
+
+Weapon special function- Added by Clone JC Denton
+===============
+*/
+void idPlayer::WeaponSpecialFunction( bool keyTapped ) {
+
+	if ( common->IsClient() ) {
+		return;
+	}
+
+	if ( spectating || gameLocal.inCinematic || influenceActive ) {
+		return;
+	}
+
+	if ( !hiddenWeapon && weapon.GetEntity() && weapon.GetEntity()->IsLinked() ) {
+		weapon.GetEntity()->BeginSpecialFunction( keyTapped );
+	}
+}
+
+/*
+===============
 idPlayer::NextBestWeapon
 ===============
 */
@@ -5207,7 +5240,7 @@ void idPlayer::NextBestWeapon()
 	const char* weap;
 	int w = MAX_WEAPONS;
 	
-	if( !weaponEnabled )
+	if( !weaponEnabled || currentWeapon != idealWeapon.Get() )
 	{
 		return;
 	}
@@ -5238,6 +5271,9 @@ void idPlayer::NextBestWeapon()
 		}
 		
 		break;
+	}
+	if( w != idealWeapon.Get() ) {
+		quickWeapon = idealWeapon.Get();
 	}
 	idealWeapon = w;
 	weaponSwitchTime = gameLocal.time + WEAPON_SWITCH_DELAY;
@@ -5297,7 +5333,7 @@ void idPlayer::NextWeapon()
 		}
 	}
 	
-	if( ( w != currentWeapon ) && ( w != idealWeapon ) )
+	if( ( w != currentWeapon ) && ( w != idealWeapon.Get() ) )
 	{
 		idealWeapon = w;
 		weaponSwitchTime = gameLocal.time + WEAPON_SWITCH_DELAY;
@@ -5742,8 +5778,20 @@ void idPlayer::Weapon_Combat()
 		{
 			if( !weapon.GetEntity()->AmmoAvailable() )
 			{
-				// weapons can switch automatically if they have no more ammo
-				NextBestWeapon();
+				if ( ( weapon_soulcube >= 0 ) && ( currentWeapon == weapon_soulcube ) && currentWeapon == idealWeapon )
+				{
+					if( hud )
+					{
+						hud->UpdateSoulCube( false );
+					}
+					quickWeapon = weapon_soulcube;
+					SelectWeapon( previousWeapon, false );
+				}
+				else
+				{
+					// weapons can switch automatically if they have no more ammo
+					NextBestWeapon();
+				}
 			}
 			else
 			{
@@ -5786,7 +5834,7 @@ idPlayer::Weapon_NPC
 */
 void idPlayer::Weapon_NPC()
 {
-	if( idealWeapon != currentWeapon )
+	if( idealWeapon.Get() != currentWeapon )
 	{
 		Weapon_Combat();
 	}
@@ -5860,7 +5908,7 @@ void idPlayer::Weapon_GUI()
 
 	if( !objectiveSystemOpen )
 	{
-		if( idealWeapon != currentWeapon )
+		if( idealWeapon.Get() != currentWeapon )
 		{
 			Weapon_Combat();
 		}
@@ -5943,7 +5991,7 @@ void idPlayer::UpdateWeapon()
 	// always make sure the weapon is correctly setup before accessing it
 	if( !weapon.GetEntity()->IsLinked() )
 	{
-		if( idealWeapon != -1 )
+		if( idealWeapon.Get() != -1 )
 		{
 			animPrefix = spawnArgs.GetString( va( "def_weapon%d", idealWeapon.Get() ) );
 			int ammoInClip = inventory.GetClipAmmoForWeapon( idealWeapon.Get() );
@@ -6004,7 +6052,7 @@ idPlayer::UpdateFlashLight
 */
 void idPlayer::UpdateFlashlight()
 {
-	if( idealWeapon == weapon_flashlight )
+	if( idealWeapon.Get() == weapon_flashlight )
 	{
 		// force classic flashlight to go away
 		NextWeapon();
@@ -7685,17 +7733,44 @@ void idPlayer::PerformImpulse( int impulse )
 {
 	bool isIntroMap = ( idStr::FindText( gameLocal.GetMapFileName(), "mars_city1" ) >= 0 );
 	
+	int prevIdealWeap;
+	WeaponToggle_t* weaponToggle;
+
 	// Normal 1 - 0 Keys.
 	if( impulse >= IMPULSE_0 && impulse <= IMPULSE_12 && !isIntroMap )
 	{
-		SelectWeapon( impulse, false );
+		// This loop works as a small bug fix for toggle weapons -By Clone JC Denton
+		// It simply increments the impulse value if there are multiple weapons under one weapon slot.
+
+		for (int i=0; i<impulse; i++) {
+			if (weaponToggles.Get(va("weapontoggle%d", i), &weaponToggle))
+				impulse += weaponToggle->toggleList.Num() - 1;
+		}
+
+		prevIdealWeap = idealWeapon.Get();
+		SelectWeapon( impulse, false);
+		if( idealWeapon.Get() != prevIdealWeap ) {
+			quickWeapon = prevIdealWeap;
+		}
 		return;
 	}
 	
 	// DPAD Weapon Quick Select
 	if( impulse >= IMPULSE_28 && impulse <= IMPULSE_31 && !isIntroMap )
 	{
-		SelectWeapon( impulse, false );
+		// This loop works as a small bug fix for toggle weapons -By Clone JC Denton
+		// It simply increments the impulse value if there are multiple weapons under one weapon slot.
+
+		for (int i=0; i<impulse; i++) {
+			if (weaponToggles.Get(va("weapontoggle%d", i), &weaponToggle))
+				impulse += weaponToggle->toggleList.Num() - 1;
+		}
+
+		prevIdealWeap = idealWeapon.Get();
+		SelectWeapon( impulse, false);
+		if( idealWeapon.Get() != prevIdealWeap ) {
+			quickWeapon = prevIdealWeap;
+		}
 		return;
 	}
 	
@@ -7710,7 +7785,11 @@ void idPlayer::PerformImpulse( int impulse )
 		{
 			if( !isIntroMap )
 			{
+				prevIdealWeap = idealWeapon.Get();
 				NextWeapon();
+				if( idealWeapon.Get() != prevIdealWeap ) {
+					quickWeapon = prevIdealWeap;
+				}
 			}
 			break;
 		}
@@ -7718,7 +7797,11 @@ void idPlayer::PerformImpulse( int impulse )
 		{
 			if( !isIntroMap )
 			{
+				prevIdealWeap = idealWeapon.Get();
 				PrevWeapon();
+				if( idealWeapon.Get() != prevIdealWeap ) {
+					quickWeapon = prevIdealWeap;
+				}
 			}
 			break;
 		}
@@ -7735,6 +7818,17 @@ void idPlayer::PerformImpulse( int impulse )
 					FlashlightOn();
 				}
 			}
+			break;
+		}
+		case IMPULSE_17: // New, for half-life style quick weapon
+		{
+			if ( quickWeapon == -1 )
+			{
+				return;
+			}
+			prevIdealWeap = idealWeapon.Get();
+			SelectWeapon( quickWeapon, false );
+			quickWeapon = prevIdealWeap;
 			break;
 		}
 		case IMPULSE_19:
@@ -9021,6 +9115,21 @@ void idPlayer::Think()
 		}
 	}
 	
+	// zooming, initiated by weapon script
+	if ( ( weaponZoom.oldZoomStatus ^ weaponZoom.startZoom ) )
+	{
+		if ( weaponZoom.startZoom && weapon.GetEntity() )
+		{
+			weaponZoom.oldZoomStatus = true;
+			zoomFov.Init( gameLocal.time, 200.0f, CalcFov( false ), weapon.GetEntity()->GetZoomFov() );
+		}
+		else
+		{
+			weaponZoom.oldZoomStatus = false;
+			zoomFov.Init( gameLocal.time, 200.0f, zoomFov.GetCurrentValue( gameLocal.time ), DefaultFov() );
+		}
+	}
+
 	// if we have an active gui, we will unrotate the view angles as
 	// we turn the mouse movements into gui events
 	idUserInterface* gui = ActiveGui();
@@ -10320,9 +10429,9 @@ float idPlayer::CalcFov( bool honorZoom )
 		return influenceFov;
 	}
 	
-	if( zoomFov.IsDone( gameLocal.time ) )
+	if ( zoomFov.IsDone( gameLocal.time ) )
 	{
-		fov = ( honorZoom && usercmd.buttons & BUTTON_ZOOM ) && weapon.GetEntity() ? weapon.GetEntity()->GetZoomFov() : DefaultFov();
+		fov = ( honorZoom && ((usercmd.buttons & BUTTON_ZOOM) || weaponZoom.startZoom )) && weapon.GetEntity() ? weapon.GetEntity()->GetZoomFov() : DefaultFov(); // Updated By Clone JCD
 	}
 	else
 	{
@@ -11225,6 +11334,15 @@ bool idPlayer::WeaponAvailable( const char* name )
 	return false;
 }
 
+/*
+==================
+idPlayer::Event_GetImpulseKey
+==================
+*/
+void idPlayer::Event_GetImpulseKey( void )
+{
+	idThread::ReturnInt( usercmd.impulse );
+}
 
 /*
 ==================
@@ -11285,7 +11403,7 @@ void idPlayer::Event_SelectWeapon( const char* weaponName )
 	
 	if( hiddenWeapon && gameLocal.world->spawnArgs.GetBool( "no_Weapons" ) )
 	{
-		idealWeapon = weapon_fists;
+		idealWeapon = quickWeapon = weapon_fists;
 		weapon.GetEntity()->HideWeapon();
 		return;
 	}
@@ -11311,6 +11429,10 @@ void idPlayer::Event_SelectWeapon( const char* weaponName )
 	}
 	
 	hiddenWeapon = false;
+
+	if( idealWeapon.Get() != weaponNum ) {
+		quickWeapon = idealWeapon.Get();
+	}
 	idealWeapon = weaponNum;
 	
 	UpdateHudWeapon();

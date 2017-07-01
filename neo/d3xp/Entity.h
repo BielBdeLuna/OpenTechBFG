@@ -748,8 +748,8 @@ public:
 	bool					GetJointTransformForAnim( jointHandle_t jointHandle, int animNum, int currentTime, idVec3& offset, idMat3& axis ) const;
 	
 	virtual int				GetDefaultSurfaceType() const;
-	virtual void			AddDamageEffect( const trace_t &collision, const idVec3 &velocity, const char *damageDefName, idEntity *soundEnt );
-	void					AddLocalDamageEffect( jointHandle_t jointNum, const idVec3 &localPoint, const idVec3 &localNormal, const idVec3 &localDir, const idDeclEntityDef *def, const idMaterial *collisionMaterial, idEntity *soundEnt = NULL );
+	virtual void			AddDamageEffect( const trace_t& collision, const idVec3& velocity, const char* damageDefName, idEntity* soundEnt );
+	void					AddLocalDamageEffect( jointHandle_t jointNum, const idVec3& localPoint, const idVec3& localNormal, const idVec3& localDir, const idDeclEntityDef *def, const idMaterial* collisionMaterial, idEntity* soundEnt = NULL );
 	void					UpdateDamageEffects();
 	
 	virtual bool			ClientReceiveEvent( int event, int time, const idBitMsg& msg );
@@ -765,6 +765,8 @@ protected:
 	damageEffect_t* 		damageEffects;
 	
 private:
+	int						nextBloodPoolTime;
+
 	void					Event_GetJointHandle( const char* jointname );
 	void 					Event_ClearAllJoints();
 	void 					Event_ClearJoint( jointHandle_t jointnum );
