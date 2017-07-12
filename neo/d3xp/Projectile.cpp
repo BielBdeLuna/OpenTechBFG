@@ -62,6 +62,7 @@ If you have questions concerning this license or the applicable additional terms
 #include "../d3xp/script/Script_Thread.h"
 #include "../framework/CVarSystem.h"
 #include "../framework/Common.h"
+#include "../framework/DeclEntityDef.h"
 #include "../framework/DeclManager.h"
 #include "../framework/DeclParticle.h"
 #include "../idlib/BitMsg.h"
@@ -99,9 +100,6 @@ namespace BFG
 
 
 idCVar g_projectileDebug( "g_projectileDebug", "0", CVAR_BOOL, "Debug projectiles" );
-
-
-// This is used in MP to simulate frames to catchup a projectile's state. Similiar to how players work much lighter weight.
 
 // This is used in MP to simulate frames to catchup a projectile's state. Similiar to how players work much lighter weight.
 idArray< idProjectile::simulatedProjectile_t, idProjectile::MAX_SIMULATED_PROJECTILES >	idProjectile::projectilesToSimulate;
@@ -271,7 +269,7 @@ void idProjectile::Restore( idRestoreGame* savefile )
 	}
 
 	//Reinitialize the damage Def--- By Clone JC Denton
-	damageDef = gameLocal.FindEntityDef( spawnArgs.GetString( "def_damage", false ) );
+	damageDef = gameLocal.FindEntityDef( spawnArgs.GetString( "def_damage"), false );
 }
 
 /*
@@ -524,7 +522,7 @@ void idProjectile::Launch( const idVec3& start, const idVec3& dir, const idVec3&
 	
 	thruster.SetPosition( &physicsObj, 0, idVec3( GetPhysics()->GetBounds()[ 0 ].x, 0, 0 ) );
 	
-	damageDef = gameLocal.FindEntityDef( spawnArgs.GetString( "def_damage", false ) );
+	damageDef = gameLocal.FindEntityDef( spawnArgs.GetString( "def_damage" ), false );
 
 	if( !common->IsClient() || fl.skipReplication )
 	{

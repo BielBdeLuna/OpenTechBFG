@@ -33,6 +33,7 @@ If you have questions concerning this license or the applicable additional terms
 
 #include "../cm/CollisionModel.h"
 #include "../d3xp/Entity.h"
+#include "../d3xp/Tracer.h"
 #include "../d3xp/gamesys/Class.h"
 #include "../d3xp/gamesys/Event.h"
 #include "../d3xp/physics/Force_Constant.h"
@@ -45,7 +46,6 @@ If you have questions concerning this license or the applicable additional terms
 #include "../idlib/math/Matrix.h"
 #include "../idlib/math/Vector.h"
 #include "../renderer/RenderWorld.h"
-#include "../d3xp/Tracer.h"
 
 namespace BFG
 {

@@ -1,7 +1,9 @@
 
 #pragma hdrstop
 
-#include "Game_local.h"
+#include "../d3xp/Entity.h"
+#include "../d3xp/Game_local.h"
+#include "../d3xp/SmokeParticles.h"
 #include "../d3xp/Tracer.h"
 
 namespace BFG
@@ -539,7 +541,7 @@ void dnRailBeam::Think( void )  {
 	if( nSmokeParticles > 0 ){ 
 		for( int i=0; i < nSmokeParticles; i++ ) {
 	//		if( !gameLocal.smokeParticles->EmitSmoke( smokeParticle, smokeStartTime, gameLocal.random.RandomFloat(), renderEntity.origin + smokeLength * (i+1) * renderEntity.axis[0], renderEntity.axis ) ) {
-			if( !gameLocal.smokeParticles->EmitSmoke( smokeParticle, smokeStartTime, gameLocal.random.RandomFloat(), smokeOffset - smokeLength * (i+1) * renderEntity.axis[2], renderEntity.axis ) ) {
+			if( !gameLocal.smokeParticles->EmitSmoke( smokeParticle, smokeStartTime, gameLocal.random.RandomFloat(), smokeOffset - smokeLength * (i+1) * renderEntity.axis[2], renderEntity.axis, owner->timeGroup /*_D3XP*/ ) ) {
 				deadSmokeCount++;
 			}	
 		}

@@ -151,10 +151,6 @@ const idEventDef EV_Weapon_StopWeaponLight( "stopWeaponLight", "s" );
 const idEventDef EV_Weapon_ChangeProjectileDef( "changeProjectileDef" , "d", 'f' ); // New
 const idEventDef EV_Weapon_GetProjectileType( "getProjectileType", NULL, 'f' );
 const idEventDef EV_Weapon_SetZoom( "setZoom" , "d"); // New
-const idEventDef EV_Weapon_StartWeaponParticle( "startWeaponParticle", "s" );
-const idEventDef EV_Weapon_StopWeaponParticle( "stopWeaponParticle", "s" );
-const idEventDef EV_Weapon_StartWeaponLight( "startWeaponLight", "s" );
-const idEventDef EV_Weapon_StopWeaponLight( "stopWeaponLight", "s" );
 
 //
 // class def
@@ -1173,7 +1169,7 @@ void idWeapon::GetWeaponDef( const char* objectname, int ammoinclip )
 	
 	silent_fire			= weaponDef->dict.GetBool( "silent_fire" );
 	powerAmmo			= weaponDef->dict.GetBool( "powerAmmo" );
-/*	deactived with as addition with dentonmod
+/*	commented out as addition with dentonmod
 	muzzle_kick_time	= SEC2MS( weaponDef->dict.GetFloat( "muzzle_kick_time" ) );
 	muzzle_kick_maxtime	= SEC2MS( weaponDef->dict.GetFloat( "muzzle_kick_maxtime" ) );
 	muzzle_kick_angles	= weaponDef->dict.GetAngles( "muzzle_kick_angles" );
@@ -1250,7 +1246,7 @@ void idWeapon::GetWeaponDef( const char* objectname, int ammoinclip )
 	{
 		smokeJointView = INVALID_JOINT;
 	}
-/*	deactived with as addition with dentonmod
+/*	commented out as addition with dentonmod
 	// get the projectile
 	projectileDict.Clear();
 	
@@ -1327,20 +1323,7 @@ void idWeapon::GetWeaponDef( const char* objectname, int ammoinclip )
 	worldMuzzleFlash.suppressLightInViewID = owner->entityNumber + 1;
 	worldMuzzleFlash.allowLightInViewID = 0;
 	worldMuzzleFlash.lightId = LIGHTID_WORLD_MUZZLE_FLASH + owner->entityNumber;
-	/*
-	================
-	idWeapon::BeginSpecialFunction
-	================
-	*/
-	void idWeapon::BeginSpecialFunction( bool keyTapped ) {	// new
-		if ( isLinked ) {
-			if (keyTapped){
-				WEAPON_SPECIAL = true;
-			}
-			WEAPON_SPECIAL_HOLD = true;
-		}
 
-	}
 	//-----------------------------------
 	
 	nozzleFx			= weaponDef->dict.GetBool( "nozzleFx" );
@@ -3836,7 +3819,7 @@ void idWeapon::Event_UseAmmo( int amount )
 		{
 			// Now, the ammo in clip is separate from that of ammo in inventory. So when the ammo is removed from clip,
 			// only remove remaining ammo from the inventory
-			owner->inventory.UseAmmo( ammoType, -ammoClip );
+			owner->inventory.UseAmmo( ammoType, -ammoClip.Get() );
 			ammoClip = 0;
 		}
 	}
@@ -4316,13 +4299,13 @@ void idWeapon::Event_LaunchProjectiles( int num_projectiles, float spread, float
 	
 	bool			barrelLaunch;
 	bool			tracer, beam;
-	const float 	tracer_speed;
+	float 			tracer_speed;
 
 	float 			muzzleDistFromView;
 	float 			traceDist, muzzleToTargetDist;
 	idVec3 			muzzleDir;
 	idVec3			view_pos;
-	idVec3 			&launch_pos;
+	idVec3 			launch_pos;
 
 	assert( owner != NULL );
 	
@@ -5053,87 +5036,6 @@ void idWeapon::Event_StopWeaponSmoke()
 	weaponSmokeStartTime = 0;
 }
 
-void idWeapon::Event_StartWeaponParticle( const char* name )
-{
-	WeaponParticle_t* part;
-	weaponParticles.Get( name, &part );
-
-	if( part )
-	{
-		part->particleFlags.isActive = true;
-		
-		if( part->particleFlags.isSmoke )
-		{
-			part->startTime = gameLocal.time;
-		}
-		else
-		{
-			if( part->modelDefHandle > -1 )
-			{
-				gameRenderWorld->FreeEntityDef( part->modelDefHandle );
-				part->modelDefHandle = -1;
-			}
-			//part->renderEntity.shaderParms[ SHADERPARM_TIMEOFFSET ]	= -MS2SEC( gameLocal.time );
-			//part->renderEntity.shaderParms[ SHADERPARM_DIVERSITY ]	= gameLocal.random.RandomFloat(); // For effects like muzzleflashes etc.
-		}
-	}
-}
-
-void idWeapon::Event_StopWeaponParticle( const char* name )
-{
-	WeaponParticle_t* part;
-	weaponParticles.Get( name, &part );
-
-	if( part )
-	{
-		part->particleFlags.isActive = false;
-		part->startTime = 0;
-		
-		//Free the particles
-		if(!part->particleFlags.isSmoke && part->modelDefHandle >= 0)
-		{
-			gameRenderWorld->FreeEntityDef( part->modelDefHandle );
-			part->modelDefHandle = -1;
-		}
-	}
-}
-
-void idWeapon::Event_StartWeaponLight( const char* name )
-{
-	WeaponLight_t* light;
-	weaponLights.Get( name, &light );
-	if( light )
-	{
-		light->lightFlags.isActive = true;
-		light->startTime = gameLocal.time;
-
-		// these will be different each fire
-		light->light.shaderParms[ SHADERPARM_TIMEOFFSET ]	= -MS2SEC( gameLocal.time );
-		light->light.shaderParms[ SHADERPARM_DIVERSITY ]	= renderEntity.shaderParms[ SHADERPARM_DIVERSITY ];
-
-		if( !light->lightFlags.isAlwaysOn )
-		{
-			light->endTime += light->startTime;
-		}
-	}
-}
-
-void idWeapon::Event_StopWeaponLight( const char* name )
-{
-	WeaponLight_t* light;
-	weaponLights.Get( name, &light );
-	if( light )
-	{
-		light->lightFlags.isActive = false;
-		light->startTime = 0;
-
-		if( light->lightHandle != -1 )
-		{
-			gameRenderWorld->FreeLightDef( light->lightHandle );
-			light->lightHandle = -1;
-		}
-	}
-}
 /*
 =====================
 idWeapon::Event_Melee
