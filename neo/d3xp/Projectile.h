@@ -140,7 +140,7 @@ public :
 	
 	// This list is used to "catch up" client projectiles to the current time on the server
 	static idArray< simulatedProjectile_t, MAX_SIMULATED_PROJECTILES >	projectilesToSimulate;
-	
+
 protected:
 	idEntityPtr<idEntity>	owner;
 	

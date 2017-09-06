@@ -161,6 +161,23 @@ idProjectile::idProjectile() :
 
 	// note: for net_instanthit projectiles, we will force this back to false at spawn time
 	fl.networkSync		= true;
+
+	// FIXME this is clearly a hack!
+	// pre-processed variables to avert the main thread vs game thread problem
+	const char* beam_mat_name = spawnArgs.GetString( "beam_skin", NULL );
+	const char* beam_smoke_name = spawnArgs.GetString( "beam_smoke", NULL );
+	const char* tracer_model_name = spawnArgs.GetString( "model_tracer", NULL );
+	if ( beam_mat_name != '\0' ) {
+		preProcessed.beam_skin = declManager->FindSkin( beam_mat_name );
+		preProcessed.beam_mtr = declManager->FindMaterial( beam_mat_name );
+	}
+	if ( beam_smoke_name != '\0' ) {
+		preProcessed.beam_smoke = static_cast<const idDeclParticle *>( declManager->FindType( DECL_PARTICLE, beam_smoke_name ) );
+	}
+	if ( tracer_model_name != '\0' ) {
+		preProcessed.model_tracer = static_cast<const idDeclModelDef *>( declManager->FindType( DECL_MODELDEF, tracer_model_name ) );
+		preProcessed.model = renderModelManager->FindModel( tracer_model_name );
+	}
 }
 
 /*
@@ -491,7 +508,8 @@ void idProjectile::Launch( const idVec3& start, const idVec3& dir, const idVec3&
 	{
 		if( spawnArgs.GetBool( "launchFromBarrel") ) {
 			idStr tracerModel;
-			if( spawnArgs.GetString( "beam_skin", NULL ) != NULL ) {	// See if there's a beam_skin
+			// See if there's a beam_material
+			if( spawnArgs.GetString( "beam_skin", NULL ) != NULL ) {
 				tracerEffect = new dnBarrelLaunchedBeamTracer( this );
 			}
 			else if ( tracerEffect == NULL && spawnArgs.GetString( "model_tracer", "", tracerModel ) ){
@@ -698,7 +716,7 @@ bool idProjectile::Collide( const trace_t& collision, const idVec3& velocity )
 	idVec3		dir;
 	float		push;
 	float		damageScale;
-	
+
 	if( state == EXPLODED || state == FIZZLED )
 	{
 		return true;
@@ -960,14 +978,32 @@ void idProjectile::DefaultDamageEffect( idEntity* soundEnt, const idDict& projec
 	}
 	
 	// project decal
-	decal = projectileDef.GetString( va( "mtr_detonate_%s", typeName ) );
-	if( *decal == '\0' )
-	{
-		decal = projectileDef.GetString( "mtr_detonate" );
+	// Note that decal info is taken from projectile def, as projectDecal and projectOverlay work differently.
+
+	decal = projectileDef.GetString( va( "mtr_wound_%s", typeName ) );
+
+	 // If this check is not performed game may crash at occasions
+    if ( g_debugDamage.GetBool() && collision.c.material != NULL )
+    {
+		gameLocal.Printf("\n Collision Material Type: %s", typeName);
+		gameLocal.Printf("\n File: %s", collision.c.material->GetFileName ());
+		gameLocal.Printf("\n Collision material: %s", collision.c.material->ImageName());
 	}
-	if( *decal != '\0' )
+
+	if ( *decal == '\0' )
 	{
-		gameLocal.ProjectDecal( collision.c.point, -collision.c.normal, 8.0f, true, projectileDef.GetFloat( "decal_size", "6.0" ), decal );
+		decal = projectileDef.GetString( "mtr_wound" ); // Default decal
+	}
+
+	if ( *decal != '\0' )
+	{
+		float size;
+		// If Material Specific decal size not found, look for default size
+		if ( !projectileDef.GetFloat( va( "size_wound_%s", typeName ), "6.0", size ) )
+		{
+			size = projectileDef.GetFloat( "size_wound", "6.0" );
+		}
+		gameLocal.ProjectDecal( collision.c.point, -collision.c.normal, 8.0f, true, size, decal );
 	}
 }
 
@@ -2972,6 +3008,7 @@ idDebris::idDebris()
 	sndBounce = NULL;
     nextSoundTime = 0;		// BY Clone JCD
 	soundTimeDifference = 0; //
+	continuousSmoke = false;
 }
 
 /*
@@ -3052,6 +3089,7 @@ void idDebris::Launch()
 	gravity				= spawnArgs.GetFloat( "gravity" );
 	fuse				= spawnArgs.GetFloat( "fuse" );
 	randomVelocity		= spawnArgs.GetBool( "random_velocity" );
+	continuousSmoke		= spawnArgs.GetBool ( "smoke_continuous" );
 	
 	if( mass <= 0 )
 	{

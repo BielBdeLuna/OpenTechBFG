@@ -154,6 +154,15 @@ public:
 	idList<signal_t, TAG_ENTITY> signal[ NUM_SIGNALS ];
 };
 
+// pre-processed variables to avert the main thread vs game thread problem
+struct preProceced_t
+{
+	const idDeclSkin*		beam_skin;
+	const idMaterial 	 *	beam_mtr;
+	const idDeclParticle *	beam_smoke;
+	const idDeclModelDef *	model_tracer;
+	idRenderModel 		 *	model;
+};
 
 /*
 ================================================
@@ -298,7 +307,11 @@ public:
 	
 	void					SetGrabbedState( bool grabbed );
 	bool					IsGrabbed();
-	
+
+	// pre-processed variables to avert the main thread vs game thread problem
+	preProceced_t 			preProcessed;
+	preProceced_t			GetPreProcessed() { return preProcessed; };
+
 public:
 	ABSTRACT_PROTOTYPE( idEntity );
 	

@@ -29,6 +29,7 @@ class idEntity;
 class dnTracerEffect {
 protected:
 	idEntity *owner;
+	preProceced_t	preProcessed;
 
 public :
 					dnTracerEffect( idEntity *owner ); // a projectileEntity
@@ -113,8 +114,10 @@ public :
 	static int		Type( void ) { return TR_TYPE_SPEEDTRACER; } 
 };
 
-ID_INLINE dnSpeedTracer::~dnSpeedTracer() {
-	if ( modelDefHandle >= 0){
+ID_INLINE dnSpeedTracer::~dnSpeedTracer()
+{
+	if ( modelDefHandle >= 0)
+	{
 		gameRenderWorld->FreeEntityDef( modelDefHandle );
 	}
 }
@@ -212,7 +215,7 @@ private:
 	const			idDeclParticle* smokeParticle;//Used for smoke particles
 
 public :
-			 dnRailBeam( idEntity *owner, const idVec3 &beamStart );	
+			 dnRailBeam( idEntity *owner, const idVec3 &beamStart );
 	virtual	~dnRailBeam() {
 		if ( modelDefHandle >= 0){
 			gameRenderWorld->FreeEntityDef( modelDefHandle );

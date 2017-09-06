@@ -82,6 +82,8 @@ dnBeamTracer::dnBeamTracer( idEntity *owner, const float distanceRatio, const id
 
 	SetType( TR_TYPE_BEAMTRACER );// We must set type in the beginning of every constructor.
 
+	preProcessed = owner->GetPreProcessed();
+
 	const char *skinName = owner->spawnArgs.GetString( "beam_skin" );
 
 	if ( skinName[0] == '\0' ) {
@@ -123,7 +125,7 @@ dnBeamTracer::dnBeamTracer( idEntity *owner, const float distanceRatio, const id
 	renderEntity->shaderParms[ SHADERPARM_BEAM_END_Z ] = endPos[2];
 	
 	owner->SetModel( "_beam" );
-	owner->SetSkin( declManager->FindSkin( skinName ) );	
+	owner->SetSkin( preProcessed.beam_skin );
 }
 
 /*
@@ -172,6 +174,8 @@ dnBarrelLaunchedBeamTracer::dnBarrelLaunchedBeamTracer( idEntity *owner ) : dnTr
 
 	SetType( TR_TYPE_BEAMTRACER );// We must set type in the beginning of every constructor.
 
+	preProcessed = owner->GetPreProcessed();
+
 	const char *skinName = owner->spawnArgs.GetString( "beam_skin" );
 
 	if ( skinName[0] == '\0' ) {
@@ -199,7 +203,7 @@ dnBarrelLaunchedBeamTracer::dnBarrelLaunchedBeamTracer( idEntity *owner ) : dnTr
 	renderEntity->shaderParms[ SHADERPARM_BEAM_END_Z ] = endPos[2];
 
 	owner->SetModel( "_beam" );
-	owner->SetSkin( declManager->FindSkin( skinName ) );	
+	owner->SetSkin( preProcessed.beam_skin );
 }
 
 /*
@@ -240,6 +244,8 @@ dnSpeedTracer::dnSpeedTracer( idEntity *owner, const float speed, const float di
 
 	SetType( TR_TYPE_SPEEDTRACER ); // We must set type info in the beginning of every constructor.
 
+	preProcessed = owner->GetPreProcessed();
+
 	const char *modelName = owner->spawnArgs.GetString( "model_tracer" );
 
 	if ( modelName[0] == '\0' ) {
@@ -265,18 +271,15 @@ dnSpeedTracer::dnSpeedTracer( idEntity *owner, const float speed, const float di
 
 	renderEntity.origin = lastPos;
 
-//	SetModel( modelName );
-
-	const idDeclModelDef *modelDef = static_cast<const idDeclModelDef *>( declManager->FindType( DECL_MODELDEF, modelName ) );
-
-	if( modelDef ) {
-		renderEntity.hModel = modelDef->ModelHandle();
+	if( preProcessed.model_tracer ) {
+		renderEntity.hModel = preProcessed.model_tracer->ModelHandle();
 		renderEntity.shaderParms[ SHADERPARM_RED ]		= 1.0f;
 		renderEntity.shaderParms[ SHADERPARM_GREEN ]	= 1.0f;
 		renderEntity.shaderParms[ SHADERPARM_BLUE ]		= 1.0f;
 		renderEntity.shaderParms[ SHADERPARM_ALPHA ]	= 1.0f;
 
-		renderEntity.hModel = renderModelManager->FindModel( modelName );
+		renderEntity.hModel = preProcessed.model;
+		renderEntity.customShader = preProcessed.beam_mtr;
 
 		modelDefHandle = gameRenderWorld->AddEntityDef( &renderEntity );
 	}
@@ -340,6 +343,8 @@ dnBeamSpeedTracer::dnBeamSpeedTracer( idEntity *owner, const float speed, const 
 
 	SetType( TR_TYPE_SPEEDTRACER ); // We must set type in the beginning of every constructor.
 
+	preProcessed = owner->GetPreProcessed();
+
 	const char *skinName = owner->spawnArgs.GetString( "beam_skin" );
 
 	if ( skinName[0] == '\0' ) {
@@ -383,7 +388,8 @@ dnBeamSpeedTracer::dnBeamSpeedTracer( idEntity *owner, const float speed, const 
 	renderEntity.shaderParms[ SHADERPARM_BEAM_END_Z ] = endPos[2];
 
 	renderEntity.hModel = renderModelManager->FindModel( "_beam" );
-	renderEntity.customSkin = declManager->FindSkin( skinName );	
+	renderEntity.customShader = preProcessed.beam_mtr;
+	renderEntity.customSkin = preProcessed.beam_skin;
 
 	modelDefHandle = gameRenderWorld->AddEntityDef( &renderEntity );
 }
@@ -419,10 +425,12 @@ void dnBeamSpeedTracer::Think( void )  {
 ===============================================================================
 */
 
-dnRailBeam::dnRailBeam( idEntity *owner, const idVec3 &beamStart ) 
+dnRailBeam::dnRailBeam( idEntity *owner, const idVec3 &beamStart )
 : dnTracerEffect( owner ) {
 
 	SetType( TR_TYPE_RAILBEAM ); // We must set type in the beginning of every constructor.
+
+	preProcessed = owner->GetPreProcessed();
 
 	const char *skinName = owner->spawnArgs.GetString( "beam_skin" );
 
@@ -465,17 +473,22 @@ dnRailBeam::dnRailBeam( idEntity *owner, const idVec3 &beamStart )
 	}
 
 	renderEntity.hModel = renderModelManager->FindModel( "_beam" );
-	renderEntity.customSkin = declManager->FindSkin( skinName );
-
+	//renderEntity.customSkin = declManager->FindSkin( skinName );
+	renderEntity.customShader = preProcessed.beam_mtr;
+	//renderEntity.customSkin = preProcessed.beam_skin;
 	modelDefHandle = -1;
 
-	smokeParticle = static_cast<const idDeclParticle *>( declManager->FindType( DECL_PARTICLE, owner->spawnArgs.GetString("beam_smoke"), false ) );
+	smokeStartTime = 0;
+	nSmokeParticles = 0;
+	previousTime = 0;
+
+	smokeParticle = preProcessed.beam_smoke;
 	smokeLength	  = owner->spawnArgs.GetFloat( "beam_smoke_length", "10" );
 }
 
 /*
 ================
-dnBeamSpeedTracer::Think
+dnBeamSpeedTracer::Create
 ================ 
 */
 void dnRailBeam::Create( const idVec3 &beamEnd ) {

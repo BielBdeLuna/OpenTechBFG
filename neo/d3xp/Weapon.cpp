@@ -4307,20 +4307,22 @@ void idWeapon::Event_LaunchProjectiles( int num_projectiles, float spread, float
 	idVec3			view_pos;
 	idVec3 			launch_pos;
 
+	gameLocal.Printf ( "WEAPON: launch_projectiles!\n" );
+
 	assert( owner != NULL );
 	
 	if( IsHidden() )
 	{
 		return;
 	}
-	
+
 	if( !projectileDict.GetNumKeyVals() )
 	{
 		const char* classname = weaponDef->dict.GetString( "classname" );
 		gameLocal.Warning( "No projectile defined on '%s'", classname );
 		return;
 	}
-	
+
 	// Predict clip ammo on locally controlled MP clients.
 	if( common->IsServer() || owner->IsLocallyControlled() )
 	{
@@ -4364,7 +4366,7 @@ void idWeapon::Event_LaunchProjectiles( int num_projectiles, float spread, float
 		// wake up nearby monsters
 		gameLocal.AlertAI( owner );
 	}
-	
+
 	// set the shader parm to the time of last projectile firing,
 	// which the gun material shaders can reference for single shot barrel glows, etc
 	renderEntity.shaderParms[ SHADERPARM_DIVERSITY ]	= gameLocal.random.CRandomFloat();
@@ -4396,7 +4398,6 @@ void idWeapon::Event_LaunchProjectiles( int num_projectiles, float spread, float
 	beam			= projectileDict.GetFloat( "fuse" ) <= 0 || projectileDict.GetBool( "rail_beam");
 	tracer			= !beam && projectileDict.GetBool( "tracers" ) && (projectileDict.GetFloat("tracer_probability", "1.0") > gameLocal.random.RandomFloat());
 	barrelLaunch	= projectileDict.GetBool( "launchFromBarrel" );
-
 	if ( barrelLaunch || tracer || beam )
 	{
 		// calculate the muzzle position
@@ -4435,7 +4436,6 @@ void idWeapon::Event_LaunchProjectiles( int num_projectiles, float spread, float
 	
 	if( actuallySpawnProjectile )
 	{
-	
 		ownerBounds = owner->GetPhysics()->GetAbsBounds();
 		
 		owner->AddProjectilesFired( num_projectiles );
@@ -4515,8 +4515,8 @@ void idWeapon::Event_LaunchProjectiles( int num_projectiles, float spread, float
 			
 			int predictedKey = idEntity::INVALID_PREDICTION_KEY;
 			
-			//if( projectileDict.GetBool( "net_instanthit" ) )
-			if( isHitscan )
+			if( projectileDict.GetBool( "net_instanthit" ) )
+			//if( isHitscan )
 			{
 				// don't synchronize this on top of the already predicted effect
 				ent->fl.networkSync = false;
@@ -4536,11 +4536,10 @@ void idWeapon::Event_LaunchProjectiles( int num_projectiles, float spread, float
 			{
 				launch_pos = muzzle_pos;
 			}
-
 			proj = static_cast<idProjectile*>( ent );
 			//proj->Create( owner, muzzleOrigin, dir );
 			proj->Create( owner, launch_pos, dir );
-			
+
 			projBounds = proj->GetPhysics()->GetBounds().Rotate( proj->GetPhysics()->GetAxis() );
 			
 			// make sure the projectile starts inside the bounding box of the owner
@@ -4559,7 +4558,7 @@ void idWeapon::Event_LaunchProjectiles( int num_projectiles, float spread, float
 				gameLocal.clip.Translation( tr, start, muzzle_pos, proj->GetPhysics()->GetClipModel(), proj->GetPhysics()->GetClipModel()->GetAxis(), MASK_SHOT_RENDERMODEL, owner );
 				muzzle_pos = tr.endpos;
 			//}
-			
+		    gameLocal.Printf ( "WEAPON: here are the tracers!\n" );
 			if( tracer )
 			{
 			/*
@@ -4569,7 +4568,7 @@ void idWeapon::Event_LaunchProjectiles( int num_projectiles, float spread, float
 					gameLocal.Printf ( " Unpredicted traceDistance in idWeapon::Event_LaunchProjectiles " );
 				}
 			*/
-				bool beamTracer = (projectileDict.GetString( "beam_skin", NULL ) != NULL);
+				bool beamTracer = ( projectileDict.GetString( "beam_skin", NULL ) != NULL );
 
 				if ( tracer_speed != 0.0f )
 				{
@@ -4599,6 +4598,7 @@ void idWeapon::Event_LaunchProjectiles( int num_projectiles, float spread, float
 			}
 			else if( beam )
 			{
+				gameLocal.Printf ( "WEAPON: rail effect set in\n" );
 				proj->setTracerEffect( new dnRailBeam(proj, muzzleOrigin) );
 			}
 
@@ -4647,6 +4647,8 @@ void idWeapon::Event_LaunchProjectiles( int num_projectiles, float spread, float
 	
 	// reset muzzle smoke
 	weaponSmokeStartTime = gameLocal.realClientTime;
+
+	gameLocal.Printf ( "WEAPON: shot fired\n" );
 }
 
 /*
