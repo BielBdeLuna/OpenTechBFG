@@ -105,6 +105,7 @@ set(GAMED3XP_INCLUDES
   #d3xp/EndLevel.h
   d3xp/Entity.h
   d3xp/Fx.h
+  d3xp/GraphicalInterfaces.h
   d3xp/Game.h
   d3xp/GameEdit.h
   d3xp/Game_local.h
@@ -142,6 +143,7 @@ set(GAMED3XP_SOURCES
   #d3xp/EndLevel.cpp
   d3xp/Entity.cpp
   d3xp/Fx.cpp
+  d3xp/GraphicalInterfaces_flat.cpp
   d3xp/GameEdit.cpp
   d3xp/Game_local.cpp
   d3xp/Game_network.cpp

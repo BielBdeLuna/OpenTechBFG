@@ -177,6 +177,7 @@ enum memTag_t
 	TAG_RENDERPROG,
 	TAG_NUM_TAGS,
 	TAG_TOOLS,
+	TAG_FLATGUIS,
 };
 
 static const int MAX_TAGS = 256;

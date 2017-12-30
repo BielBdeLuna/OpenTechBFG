@@ -344,7 +344,7 @@ public:	// These are public because they are called directly by static functions
 	{
 		return userCmdMgr;
 	}
-	
+
 private:
 	bool						com_fullyInitialized;
 	bool						com_refreshOnPrint;		// update the screen every print for dmap

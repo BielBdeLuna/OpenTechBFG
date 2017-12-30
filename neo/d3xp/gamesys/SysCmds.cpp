@@ -52,6 +52,7 @@ If you have questions concerning this license or the applicable additional terms
 #include "../d3xp/Projectile.h"
 #include "../d3xp/Weapon.h"
 #include "../d3xp/WorldSpawn.h"
+#include "../d3xp/GraphicalInterfaces.h"
 #include "../d3xp/ai/AAS.h"
 #include "../d3xp/ai/AI.h"
 #include "../d3xp/anim/Anim.h"
@@ -2716,6 +2717,17 @@ void Cmd_TestId_f( const idCmdArgs& args )
 	gameLocal.mpGame.AddChatLine( idLocalization::GetString( id ), "<nothing>", "<nothing>", "<nothing>" );
 }
 
+/*
+==================
+Cmd_ReloadFlatGuiList_f
+==================
+*/
+static void Cmd_ReloadFlatGuiList_f( const idCmdArgs& args )
+{
+	if( gameLocal.flatGUIManager != NULL ) {
+		gameLocal.flatGUIManager->ReloadFlatGuis();
+	}
+}
 
 /*
 =================
@@ -2819,6 +2831,8 @@ void idGameLocal::InitConsoleCommands()
 	cmdSystem->AddCommand( "testid",				Cmd_TestId_f,				CMD_FL_GAME | CMD_FL_CHEAT,	"output the string for the specified id." );
 	
 	cmdSystem->AddCommand( "setActorState",			Cmd_SetActorState_f,		CMD_FL_GAME | CMD_FL_CHEAT,	"Manually sets an actors script state", idGameLocal::ArgCompletion_EntityName );
+
+	cmdSystem->AddCommand( "reloadFlatGuiList",		Cmd_ReloadFlatGuiList_f,	CMD_FL_GAME | CMD_FL_CHEAT,	"reloads the definitions from flat GUIs" );
 }
 
 /*

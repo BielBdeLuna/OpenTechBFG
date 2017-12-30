@@ -58,6 +58,7 @@ If you have questions concerning this license or the applicable additional terms
 #include "../d3xp/script/Script_Program.h"      // for idProgram
 #include "../d3xp/MultiplayerGame.h"            // for gameType_t, etc
 #include "../d3xp/Pvs.h"                        // for pvsHandle_t, idPVS, etc
+#include "../d3xp/GraphicalInterfaces.h"
 #include "../d3xp/ai/AAS.h"                     // for aasHandle_t
 #include "../d3xp/anim/Anim.h"                  // for idAnimManager
 
@@ -120,6 +121,7 @@ class idTypeInfo;
 class idThread;
 class idEditEntities;
 class idLocationEntity;
+
 
 /*
 ===============================================================================
@@ -378,6 +380,8 @@ public:
 	idEntityPtr<idEntity>	lastGUIEnt;				// last entity with a GUI, used by Cmd_NextGUI_f
 	int						lastGUI;				// last GUI on the lastGUIEnt
 	
+	blFlatGui*				flatGUIManager;
+
 	idEntityPtr<idPlayer>	playerActivateFragChamber;	// The player that activated the frag chamber
 	
 	idEntityPtr<idEntity>	portalSkyEnt;
@@ -649,7 +653,11 @@ public:
 	}
 	
 	const char* 			GetMPPlayerDefName() const;
-	
+
+	idStr					BuildAqpath( idStr name, idStr extension, idStr folder );
+	bool					CheckSingleFile( idStr fileName );
+	bool					CheckInFolders( idStr name, idStr extension, idStr folder, bool binary );
+
 private:
 	const static int		INITIAL_SPAWN_COUNT = 1;
 	

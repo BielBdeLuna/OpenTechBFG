@@ -54,6 +54,7 @@ If you have questions concerning this license or the applicable additional terms
 #include "../d3xp/SmokeParticles.h"
 #include "../d3xp/Trigger.h"
 #include "../d3xp/WorldSpawn.h"
+#include "../d3xp/GraphicalInterfaces.h"
 #include "../d3xp/ai/AAS.h"
 #include "../d3xp/ai/AI.h"
 #include "../d3xp/anim/Anim.h"
@@ -376,6 +377,8 @@ void idGameLocal::Clear()
 	
 	lastCmdRunTimeOnClient.Zero();
 	lastCmdRunTimeOnServer.Zero();
+
+	flatGUIManager = NULL;
 }
 
 /*
@@ -433,6 +436,7 @@ void idGameLocal::Init()
 	InitConsoleCommands();
 	
 	shellHandler = new( TAG_SWF ) idMenuHandler_Shell();
+	flatGUIManager = new( TAG_FLATGUIS ) blFlatGui();
 	
 	if( !g_xp_bind_run_once.GetBool() )
 	{
@@ -5803,10 +5807,15 @@ idGameLocal::Shell_ClearRepeater
 */
 void idGameLocal::Shell_ClearRepeater()
 {
+	if( flatGUIManager != NULL ) {
+		return flatGUIManager->activeShell->ClearWidgetActionRepeater();
+	}
+	/*
 	if( shellHandler != NULL )
 	{
 		shellHandler->ClearWidgetActionRepeater();
 	}
+	*/
 }
 
 /*
@@ -5816,10 +5825,15 @@ idGameLocal::Shell_Init
 */
 void idGameLocal::Shell_Init( const char* filename, idSoundWorld* sw )
 {
+	if( flatGUIManager != NULL ) {
+		flatGUIManager->AddShell( filename, sw );
+	}
+	/*
 	if( shellHandler != NULL )
 	{
 		shellHandler->Initialize( filename, sw );
 	}
+	*/
 }
 
 /*
@@ -5829,12 +5843,17 @@ idGameLocal::Shell_Init
 */
 void idGameLocal::Shell_Cleanup()
 {
+	if( flatGUIManager != NULL ) {
+		delete flatGUIManager;
+		flatGUIManager = NULL;
+	}
+	/*
 	if( shellHandler != NULL )
 	{
 		delete shellHandler;
 		shellHandler = NULL;
 	}
-	
+	*/
 	mpGame.CleanupScoreboard();
 }
 
@@ -5847,6 +5866,20 @@ void idGameLocal::Shell_CreateMenu( bool inGame )
 {
 	Shell_ResetMenu();
 	
+	if( flatGUIManager != NULL ) {
+		if( !inGame ) {
+			flatGUIManager->SetInGame( false );
+			Shell_Init( "shell", common->MenuSW() );
+		} else {
+			flatGUIManager->SetInGame( true );
+			if( common->IsMultiplayer() ) {
+				Shell_Init( "pause", common->SW() ); //in multiplayer the menu desn't have it's own sound world
+			} else {
+				Shell_Init( "pause", common->MenuSW() );
+			}
+		}
+	}
+	/*
 	if( shellHandler != NULL )
 	{
 		if( !inGame )
@@ -5867,6 +5900,7 @@ void idGameLocal::Shell_CreateMenu( bool inGame )
 			}
 		}
 	}
+	*/
 }
 
 /*
@@ -5876,6 +5910,19 @@ idGameLocal::Shell_ClosePause
 */
 void idGameLocal::Shell_ClosePause()
 {
+	if( flatGUIManager != NULL ) {
+		if( !common->IsMultiplayer() && GetLocalPlayer() && GetLocalPlayer()->health <= 0 )
+		{
+			return;
+		}
+
+		if( flatGUIManager->GetGameComplete() )
+		{
+			return;
+		}
+		flatGUIManager->activeShell->GoToArea( FLAT_SHELL_AREA_INVALID, SHELL_AREA_TRANSITION_CUT_TO );
+	}
+	/*
 	if( shellHandler != NULL )
 	{
 	
@@ -5891,6 +5938,7 @@ void idGameLocal::Shell_ClosePause()
 		
 		shellHandler->SetNextScreen( SHELL_AREA_INVALID, MENU_TRANSITION_SIMPLE );
 	}
+	*/
 }
 
 /*
@@ -5900,10 +5948,15 @@ idGameLocal::Shell_Show
 */
 void idGameLocal::Shell_Show( bool show )
 {
+	if( flatGUIManager != NULL ) {
+		flatGUIManager->ActivateMenu( show );
+	}
+	/*
 	if( shellHandler != NULL )
 	{
 		shellHandler->ActivateMenu( show );
 	}
+	*/
 }
 
 /*
@@ -5913,11 +5966,17 @@ idGameLocal::Shell_IsActive
 */
 bool idGameLocal::Shell_IsActive() const
 {
+	if( flatGUIManager != NULL ) {
+		return flatGUIManager->activeShell->CheckActive();
+	}
+	return false;
+	/*
 	if( shellHandler != NULL )
 	{
 		return shellHandler->IsActive();
 	}
 	return false;
+	*/
 }
 
 /*
@@ -5927,11 +5986,18 @@ idGameLocal::Shell_HandleGuiEvent
 */
 bool idGameLocal::Shell_HandleGuiEvent( const sysEvent_t* sev )
 {
+	if( flatGUIManager != NULL ) {
+		//TODO this code handles keybinding in the swf code, and currently is a stump in my code
+		return flatGUIManager->HandleFlatGuiEvent( sev );
+	}
+	return false;
+	/*
 	if( shellHandler != NULL )
 	{
 		return shellHandler->HandleGuiEvent( sev );
 	}
 	return false;
+	*/
 }
 
 /*
@@ -5941,10 +6007,15 @@ idGameLocal::Shell_Render
 */
 void idGameLocal::Shell_Render()
 {
+	if( flatGUIManager != NULL ) {
+		flatGUIManager->activeShell->Update();
+	}
+	/*
 	if( shellHandler != NULL )
 	{
 		shellHandler->Update();
 	}
+	*/
 }
 
 /*
@@ -5954,11 +6025,17 @@ idGameLocal::Shell_ResetMenu
 */
 void idGameLocal::Shell_ResetMenu()
 {
+	if( flatGUIManager != NULL ) {
+		delete flatGUIManager;
+		flatGUIManager = new( TAG_FLATGUIS ) blFlatGui();
+	}
+	/*
 	if( shellHandler != NULL )
 	{
 		delete shellHandler;
 		shellHandler = new( TAG_SWF ) idMenuHandler_Shell();
 	}
+	*/
 }
 
 /*
@@ -5968,6 +6045,40 @@ idGameLocal::Shell_SyncWithSession
 */
 void idGameLocal::Shell_SyncWithSession()
 {
+	if( flatGUIManager == NULL ) {
+		return;
+	}
+	switch( session->GetState() )
+	{
+		case idSession::PRESS_START:
+			flatGUIManager->SetMenuState( MENU_STATE_PRESS_START );
+			break;
+		case idSession::INGAME:
+			flatGUIManager->SetMenuState( MENU_STATE_PAUSED );
+			break;
+		case idSession::IDLE:
+			flatGUIManager->SetMenuState( MENU_STATE_IDLE );
+			break;
+		case idSession::PARTY_LOBBY:
+			flatGUIManager->SetMenuState( MENU_STATE_PARTY_LOBBY );
+			break;
+		case idSession::GAME_LOBBY:
+			flatGUIManager->SetMenuState( MENU_STATE_GAME_LOBBY );
+			break;
+		case idSession::SEARCHING:
+			flatGUIManager->SetMenuState( MENU_STATE_SEARCHING );
+			break;
+		case idSession::LOADING:
+			flatGUIManager->SetMenuState( MENU_STATE_LOADING );
+			break;
+		case idSession::CONNECTING:
+			flatGUIManager->SetMenuState( MENU_STATE_CONNECTING );
+			break;
+		case idSession::BUSY:
+			flatGUIManager->SetMenuState( MENU_STATE_BUSY );
+			break;
+	}
+	/*
 	if( shellHandler == NULL )
 	{
 		return;
@@ -6002,15 +6113,22 @@ void idGameLocal::Shell_SyncWithSession()
 			shellHandler->SetShellState( SHELL_STATE_BUSY );
 			break;
 	}
+	*/
 }
 
 void idGameLocal::Shell_SetGameComplete()
 {
+	if( flatGUIManager != NULL ) {
+		flatGUIManager->SetGameComplete();
+		Shell_Show( true );
+	}
+	/*
 	if( shellHandler != NULL )
 	{
 		shellHandler->SetGameComplete();
 		Shell_Show( true );
 	}
+	*/
 }
 
 /*
@@ -6020,10 +6138,15 @@ idGameLocal::Shell_SetState_GameLobby
 */
 void idGameLocal::Shell_UpdateSavedGames()
 {
+	if( flatGUIManager != NULL ) {
+		flatGUIManager->UpdateSavedGames();
+	}
+	/*
 	if( shellHandler != NULL )
 	{
 		shellHandler->UpdateSavedGames();
 	}
+	*/
 }
 
 /*
@@ -6033,10 +6156,15 @@ idGameLocal::Shell_SetCanContinue
 */
 void idGameLocal::Shell_SetCanContinue( bool valid )
 {
+	if( flatGUIManager != NULL ) {
+		flatGUIManager->activeShell->SetContinueInsteadOfNewGame( valid );
+	}
+	/*
 	if( shellHandler != NULL )
 	{
 		shellHandler->SetCanContinue( valid );
 	}
+	*/
 }
 
 /*
@@ -6046,10 +6174,15 @@ idGameLocal::Shell_SetState_GameLobby
 */
 void idGameLocal::Shell_UpdateClientCountdown( int countdown )
 {
+	if( flatGUIManager != NULL ) {
+		flatGUIManager->activeShell->SetTimeRemaining( countdown );
+	}
+	/*
 	if( shellHandler != NULL )
 	{
 		shellHandler->SetTimeRemaining( countdown );
 	}
+	*/
 }
 
 /*
@@ -6059,10 +6192,15 @@ idGameLocal::Shell_SetState_GameLobby
 */
 void idGameLocal::Shell_UpdateLeaderboard( const idLeaderboardCallback* callback )
 {
+	if( flatGUIManager != NULL ) {
+		flatGUIManager->activeShell->UpdateLeaderboard();//( callback ); //FIXME someday implement me!
+	}
+	/*
 	if( shellHandler != NULL )
 	{
 		shellHandler->UpdateLeaderboard( callback );
 	}
+	*/
 }
 
 /*
@@ -6104,5 +6242,66 @@ bool idGameLocal::SimulateProjectiles()
 	
 	return moreProjectiles;
 }
+
+/*
+================
+idGameLocal::BuildAqPath
+================
+*/
+idStr idGameLocal::BuildAqpath( idStr name, idStr extension, idStr folder ) {
+	idStr fileName;
+    if( idStr::Cmpn( name, folder + "/", idStr::Length( folder ) + 1 ) != 0 )
+	{
+		// if it doesn't already have folder and "/" in front of it, add it
+		fileName = folder + "/";
+		fileName += name;
+	}
+	else
+	{
+		fileName = name;
+	}
+    fileName.ToLower();
+    fileName.BackSlashesToSlashes();
+    fileName.SetFileExtension( extension ); //it had "." + extension before
+
+    return fileName; // so it returns folder/name.extension
+}
+
+/*
+================
+idGameLocal::CheckSingleFile
+================
+*/
+bool idGameLocal::CheckSingleFile( idStr fileName ) {
+	idFile* file = fileSystem->OpenFileRead( fileName.c_str() );
+	if( file ) {
+		fileSystem->CloseFile( file );
+		return true;
+	}
+	return false;
+};
+
+/*
+================
+idGameLocal::CheckInFolders
+================
+*/
+bool idGameLocal::CheckInFolders( idStr name, idStr extension, idStr folder, bool binary ) {
+	idStr fileName, binaryFileName;
+
+    fileName = BuildAqpath( name, extension, folder );
+
+    if ( binary ) {
+		binaryFileName = "generated/";
+		binaryFileName += fileName; //  --> /generated/"folder"/"name".b"extension"
+		binaryFileName.SetFileExtension( "b" + extension ); //it had ".b" + extension before
+    }
+
+    if( ( CheckSingleFile( fileName ) ) || ( binary && CheckSingleFile( binaryFileName ) ) ) {
+    	return true;
+    } else {
+		return false;
+	}
+};
 
 } // namespace BFG
