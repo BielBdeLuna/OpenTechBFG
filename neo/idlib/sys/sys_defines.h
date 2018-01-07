@@ -73,6 +73,8 @@ const int MAX_EXPRESSION_REGISTERS = 4096;
 // DG end
 #endif
 
+#define PACKED
+
 #define FORMAT_PRINTF( x )
 
 #define PATHSEPARATOR_STR				"\\"
@@ -138,6 +140,8 @@ const int MAX_EXPRESSION_REGISTERS = 4096;
 #define ALIGN16( x )					x __attribute__ ((aligned (16)))
 #define ALIGNTYPE16						__attribute__ ((aligned (16)))
 #define ALIGNTYPE128					__attribute__ ((aligned (128)))
+
+#define PACKED							__attribute__((packed))
 
 #define FORMAT_PRINTF( x )
 

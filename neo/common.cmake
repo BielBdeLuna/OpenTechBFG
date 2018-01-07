@@ -44,7 +44,9 @@ set(SOUND_INCLUDES
   sound/snd_local.h
   sound/sound.h
   sound/SoundVoice.h
-  sound/WaveFile.h)
+  sound/WaveFile.h
+  sound/VorbisFile.h
+  )
 
 set(SOUND_SOURCES
   #sound/snd_cache.cpp
@@ -56,6 +58,7 @@ set(SOUND_SOURCES
   sound/snd_world.cpp
   sound/SoundVoice.cpp
   sound/WaveFile.cpp
+  sound/VorbisFile.cpp
   )
 
 set(XAUDIO2_INCLUDES
