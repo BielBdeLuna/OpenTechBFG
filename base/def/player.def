@@ -18,6 +18,10 @@ entityDef player_doommarine {
 
    "snd_heartbeat"	"electrical_sparks"
    "snd_heartbeat_dying" "electrical_sparks"
+
+    "snd_guienter"						"gui/enter"
+	"snd_guiexit"						"gui/exit"
+    "snd_finger_on_gui"                 "char/gui/finger_on_gui"
 }
 
 entityDef player_doommarine_mp {

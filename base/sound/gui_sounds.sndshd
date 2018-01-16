@@ -1,0 +1,26 @@
+gui/enter
+{
+	minDistance	1
+	maxDistance	30
+	volume		-6
+
+	sound/gui/enter_ui.wav
+}
+
+gui/touch_interaction
+{
+	minDistance	1
+	maxDistance	30
+	volume		-6
+
+	sound/gui/touch.wav
+}
+
+gui/exit
+{
+	minDistance	1
+	maxDistance	30
+	volume		-6
+
+	sound/gui/exit_ui.wav
+}

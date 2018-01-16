@@ -5856,6 +5856,7 @@ void idPlayer::Weapon_GUI()
 	bool isDown = ( usercmd.buttons & ( BUTTON_ATTACK | BUTTON_USE ) ) != 0;
 	if( isDown != wasDown )
 	{
+		StartSound( "snd_finger_on_gui", SND_CHANNEL_ANY, 0, false, NULL );
 		const char* command = NULL;
 		idUserInterface* ui = ActiveGui();
 		if( ui )
@@ -6524,7 +6525,7 @@ void idPlayer::UpdateFocus()
 	{
 		ClearFocus();
 	}
-	
+
 	// don't let spectators interact with GUIs
 	if( spectating )
 	{
@@ -6619,12 +6620,12 @@ void idPlayer::UpdateFocus()
 				continue;
 			}
 		}
-		
+
 		if( !ent->GetRenderEntity() || !ent->GetRenderEntity()->gui[ 0 ] || !ent->GetRenderEntity()->gui[ 0 ]->IsInteractive() )
 		{
 			continue;
 		}
-		
+
 		if( ent->spawnArgs.GetBool( "inv_item" ) )
 		{
 			// don't allow guis on pickup items focus
@@ -6662,7 +6663,7 @@ void idPlayer::UpdateFocus()
 			ClearFocus();
 			focusGUIent = ent;
 			focusUI = ui;
-			
+
 			if( oldFocus != ent )
 			{
 				// new activation
