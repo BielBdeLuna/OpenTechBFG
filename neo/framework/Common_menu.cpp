@@ -159,12 +159,12 @@ void idCommonLocal::OnStartHosting( idMatchParameters& parms )
 
 /*
 ==============
-idCommonLocal::StartMainMenu
+idCommonLocal::StartMenu
 ==============
 */
 void idCommonLocal::StartMenu( bool playIntro )
 {
-	if( game && game->Shell_IsActive() )
+	if( game && game->shell_menu_IsActive() )
 	{
 		return;
 	}
@@ -177,8 +177,8 @@ void idCommonLocal::StartMenu( bool playIntro )
 	
 	if( game )
 	{
-		game->Shell_Show( true );
-		game->Shell_SyncWithSession();
+		game->shell_menu_Toggle( true );
+		game->shell_menu_SyncWithSession();
 	}
 	
 	console->Close();
@@ -194,7 +194,7 @@ void idCommonLocal::ExitMenu()
 {
 	if( game )
 	{
-		game->Shell_Show( false );
+		game->shell_menu_Toggle( false );
 	}
 }
 
@@ -213,11 +213,10 @@ bool idCommonLocal::MenuEvent( const sysEvent_t* event )
 		return true;
 	}
 	
-	if( game && game->Shell_IsActive() )
-	{
-		return game->Shell_HandleGuiEvent( event );
+	if( game && game->shell_menu_IsActive() ) {
+		return game->shell_menu_HandleGuiEvent( event );
 	}
-	
+
 	if( game )
 	{
 		return game->HandlePlayerGuiEvent( event );
@@ -235,7 +234,7 @@ void idCommonLocal::GuiFrameEvents()
 {
 	if( game )
 	{
-		game->Shell_SyncWithSession();
+		game->shell_menu_SyncWithSession();
 	}
 }
 

@@ -421,7 +421,7 @@ void idMenuScreen_Shell_Stereoscopics::idMenuDataSource_StereoSettings::AdjustFi
 		fields[fieldIndex].SetInteger( adjusted );
 		renderSystem->EnableStereoScopicRendering( ( stereo3DMode_t )adjusted );
 		
-		gameLocal.Shell_ClearRepeater();
+		gameLocal.shell_menu_ClearRepeater();
 		
 	}
 	else if( fieldIndex == STEREO_FIELD_SWAP_EYES )

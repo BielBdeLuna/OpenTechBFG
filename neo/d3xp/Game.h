@@ -191,23 +191,33 @@ public:
 	
 	// MAIN MENU FUNCTIONS
 	virtual bool				InhibitControls() = 0;
-	virtual void				Shell_Init( const char* filename, idSoundWorld* sw ) = 0;
-	virtual void				Shell_Cleanup() = 0;
-	virtual void				Shell_CreateMenu( bool inGame ) = 0;
-	virtual void				Shell_ClosePause() = 0;
-	virtual void				Shell_Show( bool show ) = 0;
-	virtual bool				Shell_IsActive() const = 0;
-	virtual bool				Shell_HandleGuiEvent( const sysEvent_t* sev ) = 0;
-	virtual void				Shell_Render() = 0;
-	virtual void				Shell_ResetMenu() = 0;
-	virtual void				Shell_SyncWithSession() = 0;
-	virtual void				Shell_UpdateSavedGames() = 0;
-	virtual void				Shell_SetCanContinue( bool valid ) = 0;
-	virtual void				Shell_UpdateClientCountdown( int countdown ) = 0;
-	virtual void				Shell_UpdateLeaderboard( const idLeaderboardCallback* callback ) = 0;
-	virtual void				Shell_SetGameComplete() = 0;
 	virtual bool                SkipCinematicScene() = 0;
 	virtual bool                CheckInCinematic() = 0;
+
+	virtual	void				SetGameCoompleted() = 0;
+	virtual	bool				GetGameCoompleted() = 0;
+
+	virtual bool				shell_IsActive() = 0;
+	virtual	void				shell_Update() = 0;
+
+	virtual bool				shell_background_IsActive() = 0;
+	virtual void				shell_background_InitNone() = 0;
+	virtual void				shell_background_InitColour( idVec4 Colour ) = 0;
+	virtual void				shell_background_InitMaterial( idStr material_name, idVec4 Tint ) = 0;
+
+	virtual void				shell_menu_Cleanup() = 0;
+	virtual void				shell_menu_Init( idSoundWorld* sw, idStr filename = NULL ) = 0;
+	virtual void				shell_menu_InitMenu() = 0;
+	virtual void				shell_menu_ClosePause() = 0;
+	virtual void				shell_menu_ClearRepeater() = 0;
+	virtual void				shell_menu_Toggle( bool show ) = 0;
+	virtual bool				shell_menu_IsActive() = 0;
+	virtual bool				shell_menu_HandleGuiEvent( const sysEvent_t* sev ) = 0;
+	virtual void				shell_menu_SyncWithSession() = 0;
+	virtual void				shell_menu_UpdateSavedGames() = 0;
+	virtual void				shell_menu_UpdateClientCountdown( int countdown ) = 0;
+	virtual void				shell_menu_UpdateLeaderboard( const idLeaderboardCallback* callback ) = 0;
+
 };
 
 extern idGame* 					game;

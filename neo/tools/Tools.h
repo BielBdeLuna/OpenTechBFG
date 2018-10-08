@@ -20,7 +20,7 @@ void ShowEditors_f( const idCmdArgs& args );
 
 namespace Tools
 {
-
+/*
 // things in impl need to be used in at least one other file, but should generally not be touched
 namespace impl
 {
@@ -28,7 +28,7 @@ namespace impl
 void SetReleaseToolMouse( bool doRelease );
 
 } //namespace impl
-
+*/
 bool ReleaseMouseForTools();
 
 bool AreEditorsActive();

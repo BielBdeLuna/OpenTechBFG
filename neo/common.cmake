@@ -214,6 +214,10 @@ else()
   )
 endif()
 
+# new shell
+file(GLOB OTE_SHELL_INCLUDES shell/*.h)
+file(GLOB OTE_SHELL_SOURCES shell/*.cpp)
+
 file(GLOB GAMED3XP_PHYSICS_INCLUDES d3xp/physics/*.h)
 file(GLOB GAMED3XP_PHYSICS_SOURCES d3xp/physics/*.cpp)
 
@@ -416,6 +420,9 @@ source_group("sys\\sdl" FILES ${SDL_SOURCES})
 source_group("imgui" FILES ${BFG_IMGUI_INCLUDES})
 source_group("imgui" FILES ${BFG_IMGUI_SOURCES})
 
+source_group("shell" FILES ${OTE_SHELL_INCLUDES})
+source_group("shell" FILES ${OTE_SHELL_SOURCES})
+
 set(OpenTechBFG_INCLUDES
   ${AAS_INCLUDES}
   ${CM_INCLUDES}
@@ -435,6 +442,7 @@ set(OpenTechBFG_INCLUDES
   ${SWF_INCLUDES}
   ${COMMON_INCLUDES}
   ${BFG_IMGUI_INCLUDES}
+  ${OTE_SHELL_INCLUDES}
   )
 
 set(OpenTechBFG_SOURCES
@@ -455,6 +463,7 @@ set(OpenTechBFG_SOURCES
   ${SWF_SOURCES}
   ${COMMON_SOURCES}
   ${BFG_IMGUI_SOURCES}
+  ${OTE_SHELL_SOURCES}
   )
 
 add_definitions(-D__DOOM__

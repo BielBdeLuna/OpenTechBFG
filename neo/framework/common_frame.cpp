@@ -280,7 +280,7 @@ void idCommonLocal::Draw()
 	{
 		loadGUI->Render( renderSystem, Sys_Milliseconds() );
 	}
-	else if( game && game->Shell_IsActive() )
+	else if( game/* && game->shell_isActive() )
 	{
 		bool gameDraw = game->Draw( game->GetLocalClientNum() );
 		if( !gameDraw )
@@ -288,7 +288,22 @@ void idCommonLocal::Draw()
 			renderSystem->SetColor( colorBlack );
 			renderSystem->DrawStretchPic( 0, 0, renderSystem->GetVirtualWidth(), renderSystem->GetVirtualHeight(), 0, 0, 1, 1, whiteMaterial );
 		}
-		game->Shell_Render();
+		game->shell_Update();
+	} else if( game*/ ) {
+		bool gameDraw = game->Draw( game->GetLocalClientNum() );
+		if( !gameDraw )	{
+			if( game->shell_IsActive() ) {
+				game->shell_background_InitColour( colorBlack );
+			}/* else {
+				renderSystem->SetColor( colorBlack );
+				renderSystem->DrawStretchPic( 0, 0, renderSystem->GetVirtualWidth(), renderSystem->GetVirtualHeight(), 0, 0, 1, 1, whiteMaterial );
+			}*/
+		} else {
+			if( game->shell_IsActive() && game->shell_background_IsActive() ) {
+				game->shell_background_InitNone();
+			}
+		}
+		game->shell_Update();
 	}
 	else if( readDemo )
 	{
@@ -312,8 +327,16 @@ void idCommonLocal::Draw()
 		}
 		if( !gameDraw )
 		{
-			renderSystem->SetColor( colorBlack );
-			renderSystem->DrawStretchPic( 0, 0, renderSystem->GetVirtualWidth(), renderSystem->GetVirtualHeight(), 0, 0, 1, 1, whiteMaterial );
+			if( game->shell_IsActive() ) {
+				game->shell_background_InitColour( colorBlack );
+			}/* else {
+				renderSystem->SetColor( colorBlack );
+				renderSystem->DrawStretchPic( 0, 0, renderSystem->GetVirtualWidth(), renderSystem->GetVirtualHeight(), 0, 0, 1, 1, whiteMaterial );
+			}*/
+		} else {
+			if( game->shell_IsActive() && game->shell_background_IsActive() ) {
+				game->shell_background_InitNone();
+			}
 		}
 		
 		// save off the 2D drawing from the game
@@ -324,8 +347,12 @@ void idCommonLocal::Draw()
 	}
 	else
 	{
-		renderSystem->SetColor4( 0, 0, 0, 1 );
-		renderSystem->DrawStretchPic( 0, 0, renderSystem->GetVirtualWidth(), renderSystem->GetVirtualHeight(), 0, 0, 1, 1, whiteMaterial );
+		if( game->shell_IsActive() ) {
+			game->shell_background_InitColour( colorBlack );
+		}/* else {
+			renderSystem->SetColor( colorBlack );
+			renderSystem->DrawStretchPic( 0, 0, renderSystem->GetVirtualWidth(), renderSystem->GetVirtualHeight(), 0, 0, 1, 1, whiteMaterial );
+		}*/
 	}
 	
 	{
@@ -389,7 +416,7 @@ idCommonLocal::ProcessGameReturn
 void idCommonLocal::ProcessGameReturn( const gameReturn_t& ret )
 {
 	// set joystick rumble
-	if( in_useJoystick.GetBool() && in_joystickRumble.GetBool() && !game->Shell_IsActive() && session->GetSignInManager().GetMasterInputDevice() >= 0 )
+	if( in_useJoystick.GetBool() && in_joystickRumble.GetBool() && !game->shell_IsActive() && session->GetSignInManager().GetMasterInputDevice() >= 0 )
 	{
 		Sys_SetRumble( session->GetSignInManager().GetMasterInputDevice(), ret.vibrationLow, ret.vibrationHigh );		// Only set the rumble on the active controller
 	}
@@ -421,7 +448,7 @@ void idCommonLocal::ProcessGameReturn( const gameReturn_t& ret )
 		{
 			if( !IsMultiplayer() )
 			{
-				game->Shell_Show( true );
+				game->shell_menu_Toggle( true );
 			}
 		}
 		else if( !idStr::Icmp( args.Argv( 0 ), "disconnect" ) )
@@ -473,16 +500,16 @@ void idCommonLocal::Frame()
 		// Activate the shell if it's been requested
 		if( showShellRequested && game )
 		{
-			game->Shell_Show( true );
+			game->shell_menu_Toggle( true );
 			showShellRequested = false;
 		}
 		
 		// if the console or another gui is down, we don't need to hold the mouse cursor
 		bool chatting = false;
 		
-		// DG: Add pause from com_pause cvar and let tools release the mouse
+		// DG: Add pause from com_pause cvar and let tools release the mouse / input
 		if( com_pause.GetInteger() || console->Active() || Dialog().IsDialogActive() || session->IsSystemUIShowing()
-				|| ( game && game->InhibitControls() ) || Tools::ReleaseMouseForTools() )
+				|| ( game && game->InhibitControls() ) /*|| Tools::ReleaseMouseForTools()*/ || common->FocusInputOnGame() )
 			// DG end
 		{
 			Sys_GrabMouseCursor( false );
@@ -498,7 +525,7 @@ void idCommonLocal::Frame()
 		const bool pauseGame = ( !mapSpawned
 								 || ( !IsMultiplayer()
 									  && ( Dialog().IsDialogPausing() || session->IsSystemUIShowing()
-										   || ( game && game->Shell_IsActive() ) || com_pause.GetInteger() ) ) );
+										   || ( game && game->shell_IsActive() ) || com_pause.GetInteger() ) ) );
 										   
 		// save the screenshot and audio from the last draw if needed
 		if( aviCaptureMode )

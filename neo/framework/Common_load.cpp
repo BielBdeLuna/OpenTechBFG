@@ -607,7 +607,9 @@ void idCommonLocal::ExecuteMapChange()
 		game->InitFromNewMap( fullMapName, renderWorld, soundWorld, matchParameters.gameMode, Sys_Milliseconds() );
 	}
 	
-	game->Shell_CreateMenu( true );
+	game->shell_menu_InitMenu(); //in the shell system this doesn't show the menu, only inits it!
+	//we shouldn't create here the ImGui menu because in the shell system the menu is only initiated in pause/mp_pause mode not shown
+
 	
 	// Reset some values important to multiplayer
 	ResetNetworkingState();
@@ -1155,7 +1157,7 @@ void idCommonLocal::OnSaveCompleted( idSaveLoadParms& parms )
 	
 	if( parms.GetError() == SAVEGAME_E_NONE )
 	{
-		game->Shell_UpdateSavedGames();
+		game->shell_menu_UpdateSavedGames();
 	}
 	
 	if( !HandleCommonErrors( parms ) )
@@ -1258,7 +1260,7 @@ void idCommonLocal::OnEnumerationCompleted( idSaveLoadParms& parms )
 {
 	if( parms.GetError() == SAVEGAME_E_NONE )
 	{
-		game->Shell_UpdateSavedGames();
+		game->shell_menu_UpdateSavedGames();
 	}
 }
 
@@ -1271,7 +1273,7 @@ void idCommonLocal::OnDeleteCompleted( idSaveLoadParms& parms )
 {
 	if( parms.GetError() == SAVEGAME_E_NONE )
 	{
-		game->Shell_UpdateSavedGames();
+		game->shell_menu_UpdateSavedGames();
 	}
 }
 

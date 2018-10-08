@@ -107,7 +107,6 @@ const idEventDef AI_BecomeSolid( "becomeSolid" );
 const idEventDef AI_BecomeRagdoll( "becomeRagdoll", NULL, 'd' );
 const idEventDef AI_StopRagdoll( "stopRagdoll" );
 const idEventDef AI_SetHealth( "setHealth", "f" );
-const idEventDef AI_GetHealth( "getHealth", NULL, 'f' );
 const idEventDef AI_AllowDamage( "allowDamage" );
 const idEventDef AI_IgnoreDamage( "ignoreDamage" );
 const idEventDef AI_GetCurrentYaw( "getCurrentYaw", NULL, 'f' );
@@ -246,7 +245,6 @@ EVENT( EV_BecomeNonSolid,					idAI::Event_BecomeNonSolid )
 EVENT( AI_BecomeRagdoll,					idAI::Event_BecomeRagdoll )
 EVENT( AI_StopRagdoll,						idAI::Event_StopRagdoll )
 EVENT( AI_SetHealth,						idAI::Event_SetHealth )
-EVENT( AI_GetHealth,						idAI::Event_GetHealth )
 EVENT( AI_AllowDamage,						idAI::Event_AllowDamage )
 EVENT( AI_IgnoreDamage,						idAI::Event_IgnoreDamage )
 EVENT( AI_GetCurrentYaw,					idAI::Event_GetCurrentYaw )
@@ -1104,13 +1102,9 @@ void idAI::Event_SetHealth( float newHealth )
 
 /*
 =====================
-idAI::Event_GetHealth
+idAI::Event_GetHealth // now handled by the actor class, so now you can read the player health within the scripts
 =====================
 */
-void idAI::Event_GetHealth()
-{
-	idThread::ReturnFloat( health );
-}
 
 /*
 =====================

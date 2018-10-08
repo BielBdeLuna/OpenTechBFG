@@ -341,7 +341,7 @@ void idProfileMgr::OnSaveSettingsCompleted( idSaveLoadParms* parms )
 	}
 	if( game )
 	{
-		game->Shell_UpdateSavedGames();
+		game->shell_menu_UpdateSavedGames();
 	}
 }
 

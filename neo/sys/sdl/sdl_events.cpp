@@ -1160,7 +1160,7 @@ sysEvent_t Sys_GetEvent()
 				// to fix cursor problems in windowed mode
 				
 				// TODO we should have some method to tell if we want absolute or relative mouse
-				if( ( game && game->Shell_IsActive() ) || ( console && console->Active() ) || Tools::ReleaseMouseForTools() )
+				if( ( game && game->shell_IsActive() ) || ( console && console->Active() ) || Tools::ReleaseMouseForTools() )
 				{
 					res.evType = SE_MOUSE_ABSOLUTE;
 					res.evValue = ev.motion.x;

@@ -617,7 +617,6 @@ protected:
 	void					Event_BecomeRagdoll();
 	void					Event_StopRagdoll();
 	void					Event_SetHealth( float newHealth );
-	void					Event_GetHealth();
 	void					Event_AllowDamage();
 	void					Event_IgnoreDamage();
 	void					Event_GetCurrentYaw();

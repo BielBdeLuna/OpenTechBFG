@@ -428,7 +428,7 @@ LONG WINAPI MainWndProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
 				break;
 			}
 			
-			const bool isShellActive = ( game && ( game->Shell_IsActive() || game->IsPDAOpen() ) );
+			const bool isShellActive = ( game && ( game->shell_IsActive() || game->IsPDAOpen() ) );
 			const bool isConsoleActive = console->Active();
 			
 			if( win32.activeApp )

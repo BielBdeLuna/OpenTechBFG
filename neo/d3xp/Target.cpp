@@ -339,7 +339,7 @@ void idTarget_EndLevel::Event_Activate( idEntity* activator )
 				}
 			}
 		}
-		gameLocal.Shell_SetGameComplete();
+		gameLocal.SetGameCoompleted();
 		return;
 	}
 	

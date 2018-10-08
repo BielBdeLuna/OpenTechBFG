@@ -100,6 +100,41 @@ static const int SNAP_USERCMDS = 8192;
 
 /*
 ===============
+idCommonLocal::IsInGame
+this is very specific check for ingame, the player could be in any game type, mp or single player
+===============
+*/
+bool idCommonLocal::IsInGame()
+{
+	return ( session->GetState() == idSession::INGAME );
+}
+
+/*
+===============
+idCommonLocal::IsInLoadMap
+this is very specific check for loading a map, the player could be in any game type, mp or single player
+===============
+*/
+bool idCommonLocal::IsInLoadMap()
+{
+	return ( session->GetState() == idSession::LOADING );
+}
+
+/*
+===============
+idCommonLocal::IsSinglePlayer
+player might not be ingame specifically, could also be loading a map whilst still being in Single player
+===============
+*/
+bool idCommonLocal::IsSinglePlayer()
+{
+	idLobbyBase& lobby = session->GetPartyLobbyBase();
+	return ( MatchTypeIsLocal( lobby.GetMatchParms().matchFlags ) && ( session->GetState() > idSession::LOADING ) );
+	//return ( ( ( lobby.GetMatchParms().matchFlags & MATCH_ONLINE ) == 0 ) && ( session->GetState() > idSession::LOADING ) );
+}
+
+/*
+===============
 idCommonLocal::IsMultiplayer
 ===============
 */

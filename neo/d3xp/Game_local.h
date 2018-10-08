@@ -29,6 +29,7 @@ If you have questions concerning this license or the applicable additional terms
 #ifndef __GAME_LOCAL_H__
 #define	__GAME_LOCAL_H__
 
+#include "../shell/shell.h"
 #include "../idlib/sys/sys_defines.h"   // for NULL
 #include "../idlib/sys/sys_types.h"     // for uint32, byte
 #include "../cm/CollisionModel.h"       // for trace_t
@@ -622,27 +623,34 @@ public:
 	virtual void				Leaderboards_Init();
 	virtual void				Leaderboards_Shutdown();
 	
-	// MAIN MENU FUNCTIONS
-	virtual void					Shell_Init( const char* filename, idSoundWorld* sw );
-	virtual void					Shell_Cleanup();
-	virtual void					Shell_Show( bool show );
-	virtual void					Shell_ClosePause();
-	virtual void					Shell_CreateMenu( bool inGame );
-	virtual bool					Shell_IsActive() const;
-	virtual bool					Shell_HandleGuiEvent( const sysEvent_t* sev );
-	virtual void					Shell_Render();
-	virtual void					Shell_ResetMenu();
-	virtual void					Shell_SyncWithSession() ;
-	virtual void					Shell_SetCanContinue( bool valid );
-	virtual void					Shell_UpdateSavedGames();
-	virtual void					Shell_UpdateClientCountdown( int countdown );
-	virtual void					Shell_UpdateLeaderboard( const idLeaderboardCallback* callback );
-	virtual void					Shell_SetGameComplete();
 	virtual bool			        SkipCinematicScene();
 	virtual bool                    CheckInCinematic();
 	
-	void					Shell_ClearRepeater();
-	
+	//functions concerning with the status of the game that have an influence on the status of the UI or it's decisions
+	virtual	void				SetGameCoompleted() { GameCompleted = true; };
+	virtual	bool				GetGameCoompleted() { return GameCompleted; };
+
+	virtual bool				shell_IsActive();
+	virtual	void				shell_Update();
+
+	virtual bool				shell_background_IsActive();
+	virtual void				shell_background_InitNone();
+	virtual void				shell_background_InitColour( idVec4 Colour );
+	virtual void				shell_background_InitMaterial( idStr material_name, idVec4 Tint );
+
+	virtual void				shell_menu_Cleanup();
+	virtual void				shell_menu_Init( idSoundWorld* sw, idStr filename = NULL );
+	virtual void				shell_menu_InitMenu();
+	virtual void				shell_menu_ClosePause();
+	virtual void				shell_menu_ClearRepeater();
+	virtual void				shell_menu_Toggle( bool show );
+	virtual bool				shell_menu_IsActive();
+	virtual bool				shell_menu_HandleGuiEvent( const sysEvent_t* sev );
+	virtual void				shell_menu_SyncWithSession();
+	virtual void				shell_menu_UpdateSavedGames();
+	virtual void				shell_menu_UpdateClientCountdown( int countdown );
+	virtual void				shell_menu_UpdateLeaderboard( const idLeaderboardCallback* callback );
+
 	const char* 			GetMapFileName()
 	{
 		return mapFileName.c_str();
@@ -651,6 +659,8 @@ public:
 	const char* 			GetMPPlayerDefName() const;
 	
 private:
+	bool					GameCompleted;
+
 	const static int		INITIAL_SPAWN_COUNT = 1;
 	
 	idStr					mapFileName;			// name of the map, empty string if no map loaded
@@ -667,7 +677,7 @@ private:
 	
 	idList<idAAS*>			aasList;				// area system
 	
-	idMenuHandler_Shell* 	shellHandler;
+	blShell*				Shell;
 	
 	idStrList				aasNames;
 	

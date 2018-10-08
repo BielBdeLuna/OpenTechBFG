@@ -13,7 +13,7 @@ namespace BFG
 
 extern idCVar g_editEntityMode;
 
-static bool releaseMouse = false;
+//static bool releaseMouse = false;
 #if 0 // currently this doesn't make too much sense
 void ShowEditors_f( const idCmdArgs& args )
 {
@@ -28,6 +28,7 @@ void CameraExplorer_f( const idCmdArgs& args ) {
 namespace Tools
 {
 
+/*
 // things in impl need to be used in at least one other file, but should generally not be touched
 namespace impl
 {
@@ -38,7 +39,7 @@ void SetReleaseToolMouse( bool doRelease )
 }
 
 } //namespace impl
-
+*/
 bool AreEditorsActive()
 {
 	// FIXME: this is not exactly clean and must be changed if we ever support game dlls
@@ -49,7 +50,8 @@ bool AreEditorsActive()
 
 bool ReleaseMouseForTools()
 {
-	return AreEditorsActive() && releaseMouse;
+	//return AreEditorsActive() && releaseMouse;
+	common->FocusInputOnGame( AreEditorsActive() );
 }
 
 void DrawToolWindows()
@@ -75,7 +77,8 @@ void DrawToolWindows()
 	//ImGui::End();
 }
 void CameraExplorerInit() {
-	impl::SetReleaseToolMouse( true );
+	//impl::SetReleaseToolMouse( true );
+	common->FocusInputOnMenu( true );
 	blCameraExplorer::OpenWindow();
 }
 
@@ -90,7 +93,8 @@ void LightEditorInit( const idDict* dict, idEntity* ent )
 			  
 			  
 	LightEditor::showIt = true;
-	impl::SetReleaseToolMouse( true );
+	//impl::SetReleaseToolMouse( true );
+	common->FocusInputOnMenu( true );
 	
 	LightEditor::ReInit( dict, ent );
 }

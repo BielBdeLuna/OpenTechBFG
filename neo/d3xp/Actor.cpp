@@ -457,6 +457,7 @@ const idEventDef EV_GetDamageGroupScale( "getDamageGroupScale", "s", 'f' );
 const idEventDef EV_SetDamageCap( "setDamageCap", "f" );
 const idEventDef EV_SetWaitState( "setWaitState" , "s" );
 const idEventDef EV_GetWaitState( "getWaitState", NULL, 's' );
+const idEventDef AI_GetHealth( "getHealth", NULL, 'f' );
 
 CLASS_DECLARATION( idAFEntity_Gibbable, idActor )
 EVENT( AI_EnableEyeFocus,			idActor::Event_EnableEyeFocus )
@@ -506,6 +507,7 @@ EVENT( EV_GetDamageGroupScale,		idActor::Event_GetDamageGroupScale )
 EVENT( EV_SetDamageCap,				idActor::Event_SetDamageCap )
 EVENT( EV_SetWaitState,				idActor::Event_SetWaitState )
 EVENT( EV_GetWaitState,				idActor::Event_GetWaitState )
+EVENT( AI_GetHealth,				idActor::Event_GetHealth )
 END_CLASS
 
 /*
@@ -4057,6 +4059,15 @@ void idActor::Event_GetWaitState()
 	{
 		idThread::ReturnString( "" );
 	}
+}
+
+/*
+=====================
+idActor::Event_GetHealth //before it was only idAI, now you can use it to get player's health too via script
+=====================
+*/
+void idActor::Event_GetHealth() {
+	idThread::ReturnFloat( health );
 }
 
 } // namespace BFG

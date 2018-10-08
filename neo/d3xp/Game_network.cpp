@@ -1201,7 +1201,7 @@ void idGameLocal::ClientProcessReliableMessage( int type, const idBitMsg& msg )
 		case GAME_RELIABLE_MESSAGE_LOBBY_COUNTDOWN:
 		{
 			int timeRemaining = msg.ReadLong();
-			Shell_UpdateClientCountdown( timeRemaining );
+			shell_menu_UpdateClientCountdown( timeRemaining );
 			break;
 		}
 		case GAME_RELIABLE_MESSAGE_RESPAWN_AVAILABLE:

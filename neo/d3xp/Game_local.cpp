@@ -365,7 +365,7 @@ void idGameLocal::Clear()
 	eventQueue.Init();
 	savedEventQueue.Init();
 	
-	shellHandler = NULL;
+	Shell = NULL;
 	selectedGroup = 0;
 	portalSkyEnt			= NULL;
 	portalSkyActive			= false;
@@ -376,6 +376,8 @@ void idGameLocal::Clear()
 	
 	lastCmdRunTimeOnClient.Zero();
 	lastCmdRunTimeOnServer.Zero();
+
+	GameCompleted = false;
 }
 
 /*
@@ -432,8 +434,8 @@ void idGameLocal::Init()
 	
 	InitConsoleCommands();
 	
-	shellHandler = new( TAG_SWF ) idMenuHandler_Shell();
-	
+	Shell = new( TAG_OLD_UI ) blShell();
+
 	if( !g_xp_bind_run_once.GetBool() )
 	{
 		//The default config file contains remapped controls that support the XP weapons
@@ -492,8 +494,10 @@ void idGameLocal::Shutdown()
 	
 	Printf( "------------ Game Shutdown -----------\n" );
 	
-	Shell_Cleanup();
+	shell_menu_Cleanup();
 	
+	mpGame.CleanupScoreboard();
+
 	mpGame.Shutdown();
 	
 	MapShutdown();
@@ -5773,7 +5777,7 @@ idGameLocal::InhibitControls
 */
 bool idGameLocal::InhibitControls()
 {
-	return ( Shell_IsActive() || IsPDAOpen() || IsPlayerChatting() || ( common->IsMultiplayer() && mpGame.IsScoreboardActive() ) );
+	return ( ( Shell && shell_IsActive() ) || IsPDAOpen() || IsPlayerChatting() || ( common->IsMultiplayer() && mpGame.IsScoreboardActive() ) );
 }
 
 /*
@@ -5796,272 +5800,115 @@ void idGameLocal::Leaderboards_Shutdown()
 	LeaderboardLocal_Shutdown();
 }
 
-/*
-========================
-idGameLocal::Shell_ClearRepeater
-========================
-*/
-void idGameLocal::Shell_ClearRepeater()
-{
-	if( shellHandler != NULL )
-	{
-		shellHandler->ClearWidgetActionRepeater();
+bool idGameLocal::shell_IsActive() {
+	bool result = false;
+	if( Shell != NULL ) {
+		result = Shell->IsActive();
+	}
+	return result;
+}
+
+void idGameLocal::shell_Update() {
+	if( Shell != NULL ) {
+		Shell->Update();
+	}
+}
+
+bool idGameLocal::shell_background_IsActive() {
+	bool result = false;
+	if( Shell != NULL ) {
+		result = Shell->Background_IsActive();
+	}
+	return result;
+}
+
+void idGameLocal::shell_background_InitNone() {
+	if( Shell != NULL ) {
+		 Shell->Background_InitNone();
+	}
+}
+
+void idGameLocal::shell_background_InitColour( idVec4 Colour ) {
+	if( Shell != NULL ) {
+		 Shell->Background_InitColour( Colour );
+	}
+}
+
+void idGameLocal::shell_background_InitMaterial( idStr material_name, idVec4 Tint ) {
+	if( Shell != NULL ) {
+		 Shell->Background_InitMaterial( material_name, Tint );
 	}
 }
 
 /*
 ========================
-idGameLocal::Shell_Init
+idGameLocal::UI_Cleanup
 ========================
 */
-void idGameLocal::Shell_Init( const char* filename, idSoundWorld* sw )
+void idGameLocal::shell_menu_Cleanup()
 {
-	if( shellHandler != NULL )
-	{
-		shellHandler->Initialize( filename, sw );
+	if( Shell != NULL ) {
+		delete Shell;
+		Shell = NULL;
 	}
 }
-
-/*
-========================
-idGameLocal::Shell_Init
-========================
-*/
-void idGameLocal::Shell_Cleanup()
-{
-	if( shellHandler != NULL )
-	{
-		delete shellHandler;
-		shellHandler = NULL;
-	}
-	
-	mpGame.CleanupScoreboard();
-}
-
-/*
-========================
-idGameLocal::Shell_CreateMenu
-========================
-*/
-void idGameLocal::Shell_CreateMenu( bool inGame )
-{
-	Shell_ResetMenu();
-	
-	if( shellHandler != NULL )
-	{
-		if( !inGame )
-		{
-			shellHandler->SetInGame( false );
-			Shell_Init( "shell", common->MenuSW() );
-		}
-		else
-		{
-			shellHandler->SetInGame( true );
-			if( common->IsMultiplayer() )
-			{
-				Shell_Init( "pause", common->SW() );
-			}
-			else
-			{
-				Shell_Init( "pause", common->MenuSW() );
-			}
-		}
+void idGameLocal::shell_menu_Init( idSoundWorld* sw, idStr filename ) {
+	if( Shell != NULL ) {
+		Shell->Menu_Init( sw, filename );
 	}
 }
-
-/*
-========================
-idGameLocal::Shell_ClosePause
-========================
-*/
-void idGameLocal::Shell_ClosePause()
-{
-	if( shellHandler != NULL )
-	{
-	
-		if( !common->IsMultiplayer() && GetLocalPlayer() && GetLocalPlayer()->health <= 0 )
-		{
-			return;
-		}
-		
-		if( shellHandler->GetGameComplete() )
-		{
-			return;
-		}
-		
-		shellHandler->SetNextScreen( SHELL_AREA_INVALID, MENU_TRANSITION_SIMPLE );
+void idGameLocal::shell_menu_InitMenu() {
+	if( Shell != NULL ) {
+		Shell->Menu_InitMenu();
 	}
 }
-
-/*
-========================
-idGameLocal::Shell_Show
-========================
-*/
-void idGameLocal::Shell_Show( bool show )
-{
-	if( shellHandler != NULL )
-	{
-		shellHandler->ActivateMenu( show );
+void idGameLocal::shell_menu_ClosePause() {
+	if( Shell != NULL ) {
+		Shell->Menu_ClosePause();
 	}
 }
-
-/*
-========================
-idGameLocal::Shell_IsActive
-========================
-*/
-bool idGameLocal::Shell_IsActive() const
-{
-	if( shellHandler != NULL )
-	{
-		return shellHandler->IsActive();
-	}
-	return false;
-}
-
-/*
-========================
-idGameLocal::Shell_HandleGuiEvent
-========================
-*/
-bool idGameLocal::Shell_HandleGuiEvent( const sysEvent_t* sev )
-{
-	if( shellHandler != NULL )
-	{
-		return shellHandler->HandleGuiEvent( sev );
-	}
-	return false;
-}
-
-/*
-========================
-idGameLocal::Shell_Render
-========================
-*/
-void idGameLocal::Shell_Render()
-{
-	if( shellHandler != NULL )
-	{
-		shellHandler->Update();
+void idGameLocal::shell_menu_ClearRepeater() {
+	if( Shell != NULL ) {
+		Shell->Menu_ClearRepeater();
 	}
 }
-
-/*
-========================
-idGameLocal::Shell_ResetMenu
-========================
-*/
-void idGameLocal::Shell_ResetMenu()
-{
-	if( shellHandler != NULL )
-	{
-		delete shellHandler;
-		shellHandler = new( TAG_SWF ) idMenuHandler_Shell();
+void idGameLocal::shell_menu_Toggle( bool show ) {
+	if( Shell != NULL ) {
+		Shell->Menu_Toggle( show );
 	}
 }
-
-/*
-=================
-idGameLocal::Shell_SyncWithSession
-=================
-*/
-void idGameLocal::Shell_SyncWithSession()
-{
-	if( shellHandler == NULL )
-	{
-		return;
+bool idGameLocal::shell_menu_IsActive() {
+	bool result = false;
+	if( Shell != NULL ) {
+		result = Shell->Menu_IsActive();
 	}
-	switch( session->GetState() )
-	{
-		case idSession::PRESS_START:
-			shellHandler->SetShellState( SHELL_STATE_PRESS_START );
-			break;
-		case idSession::INGAME:
-			shellHandler->SetShellState( SHELL_STATE_PAUSED );
-			break;
-		case idSession::IDLE:
-			shellHandler->SetShellState( SHELL_STATE_IDLE );
-			break;
-		case idSession::PARTY_LOBBY:
-			shellHandler->SetShellState( SHELL_STATE_PARTY_LOBBY );
-			break;
-		case idSession::GAME_LOBBY:
-			shellHandler->SetShellState( SHELL_STATE_GAME_LOBBY );
-			break;
-		case idSession::SEARCHING:
-			shellHandler->SetShellState( SHELL_STATE_SEARCHING );
-			break;
-		case idSession::LOADING:
-			shellHandler->SetShellState( SHELL_STATE_LOADING );
-			break;
-		case idSession::CONNECTING:
-			shellHandler->SetShellState( SHELL_STATE_CONNECTING );
-			break;
-		case idSession::BUSY:
-			shellHandler->SetShellState( SHELL_STATE_BUSY );
-			break;
+	return result;
+}
+bool idGameLocal::shell_menu_HandleGuiEvent( const sysEvent_t* sev ) {
+	bool result = false;
+	if( Shell != NULL ) {
+		result = Shell->Menu_HandleGuiEvent( sev );
+	}
+	return result;
+}
+void idGameLocal::shell_menu_SyncWithSession() {
+	if( Shell != NULL ) {
+		Shell->Menu_SyncWithSession();
 	}
 }
-
-void idGameLocal::Shell_SetGameComplete()
-{
-	if( shellHandler != NULL )
-	{
-		shellHandler->SetGameComplete();
-		Shell_Show( true );
+void idGameLocal::shell_menu_UpdateSavedGames() {
+	if( Shell != NULL ) {
+		Shell->Menu_UpdateSavedGames();
 	}
 }
-
-/*
-========================
-idGameLocal::Shell_SetState_GameLobby
-========================
-*/
-void idGameLocal::Shell_UpdateSavedGames()
-{
-	if( shellHandler != NULL )
-	{
-		shellHandler->UpdateSavedGames();
+void idGameLocal::shell_menu_UpdateClientCountdown( int countdown ) {
+	if( Shell != NULL ) {
+		Shell->Menu_UpdateClientCountdown( countdown );
 	}
 }
-
-/*
-========================
-idGameLocal::Shell_SetCanContinue
-========================
-*/
-void idGameLocal::Shell_SetCanContinue( bool valid )
-{
-	if( shellHandler != NULL )
-	{
-		shellHandler->SetCanContinue( valid );
-	}
-}
-
-/*
-========================
-idGameLocal::Shell_SetState_GameLobby
-========================
-*/
-void idGameLocal::Shell_UpdateClientCountdown( int countdown )
-{
-	if( shellHandler != NULL )
-	{
-		shellHandler->SetTimeRemaining( countdown );
-	}
-}
-
-/*
-========================
-idGameLocal::Shell_SetState_GameLobby
-========================
-*/
-void idGameLocal::Shell_UpdateLeaderboard( const idLeaderboardCallback* callback )
-{
-	if( shellHandler != NULL )
-	{
-		shellHandler->UpdateLeaderboard( callback );
+void idGameLocal::shell_menu_UpdateLeaderboard( const idLeaderboardCallback* callback ) {
+	if( Shell != NULL ) {
+		Shell->Menu_UpdateLeaderboard( callback );
 	}
 }
 

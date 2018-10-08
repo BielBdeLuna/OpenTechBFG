@@ -286,13 +286,18 @@ public:
 	
 	// Directly sample a keystate.
 	virtual int					KeyState( int key ) = 0;
-	
+
+	virtual bool				IsInGame() = 0;
+	virtual bool				IsInLoadMap() = 0;
+
+	virtual bool				IsSinglePlayer() = 0;
+
 	// Returns true if a multiplayer game is running.
 	// CVars and commands are checked differently in multiplayer mode.
 	virtual bool				IsMultiplayer() = 0;
 	virtual bool				IsServer() = 0;
 	virtual bool				IsClient() = 0;
-	
+
 	// Returns true if the player has ever enabled the console
 	virtual bool				GetConsoleUsed() = 0;
 	
@@ -341,6 +346,9 @@ public:
 	
 	virtual void				QueueShowShell() = 0;		// Will activate the shell on the next frame.
 	
+	virtual	void				FocusInputOnMenu( bool focus ) = 0;
+	virtual bool				FocusInputOnGame( bool extraCondition = true ) = 0;
+
 };
 
 extern idCommon* 		common;

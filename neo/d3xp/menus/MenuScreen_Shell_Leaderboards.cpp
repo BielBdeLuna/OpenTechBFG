@@ -862,7 +862,7 @@ public:
 	
 	void Call()
 	{
-		gameLocal.Shell_UpdateLeaderboard( this );
+		gameLocal.shell_menu_UpdateLeaderboard( this );
 	}
 	
 	LBCallback* Clone() const

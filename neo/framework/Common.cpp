@@ -245,6 +245,8 @@ idCommonLocal::idCommonLocal() :
 	saveFile = NULL;
 	stringsFile = NULL;
 	
+	inputIsFocusedOnMenu = false;
+
 	ClearWipe();
 }
 
@@ -1158,14 +1160,14 @@ void idCommonLocal::LoadGameDLL()
 
 /*
 =================
-idCommonLocal::UnloadGameDLL
+idCommonLocal::CleanupUI
 =================
 */
-void idCommonLocal::CleanupShell()
+void idCommonLocal::CleanupUI()
 {
 	if( game != NULL )
 	{
-		game->Shell_Cleanup();
+		game->shell_menu_Cleanup();
 	}
 }
 
@@ -1306,7 +1308,7 @@ void idCommonLocal::Init( int argc, const char* const* argv, const char* cmdline
 		
 		// init journalling, etc
 		eventLoop->Init();
-		
+
 		// init the parallel job manager
 		parallelJobManager->Init();
 		
@@ -1408,7 +1410,7 @@ void idCommonLocal::Init( int argc, const char* const* argv, const char* cmdline
 		// Init tool commands
 		InitCommands();
 		
-		// load the game dll
+		// load the game dll and gameLocal
 		LoadGameDLL();
 		
 		// On the PC touch them all so they get included in the resource build
@@ -1441,6 +1443,9 @@ void idCommonLocal::Init( int argc, const char* const* argv, const char* cmdline
 		session->Initialize();
 		session->InitializeSoundRelatedSystems();
 		
+		// Init main menu
+		game->shell_menu_Init( menuSoundWorld, "Main Menu" );
+
 		InitializeMPMapsModes();
 		
 		// leaderboards need to be initialized after InitializeMPMapsModes, which populates the MP Map list.
@@ -1448,9 +1453,7 @@ void idCommonLocal::Init( int argc, const char* const* argv, const char* cmdline
 		{
 			game->Leaderboards_Init();
 		}
-		
 		CreateMainMenu();
-		
 		commonDialog.Init();
 		
 		// load the console history file
@@ -1547,8 +1550,8 @@ void idCommonLocal::Shutdown()
 	printf( "Stop();\n" );
 	Stop();
 	
-	printf( "CleanupShell();\n" );
-	CleanupShell();
+	printf( "CleanupUI();\n");
+	CleanupUI();
 	
 	printf( "delete loadGUI;\n" );
 	delete loadGUI;
@@ -1681,10 +1684,16 @@ void idCommonLocal::CreateMainMenu()
 		
 		// create main inside an "empty" game level load - so assets get
 		// purged automagically when we transition to a "real" map
-		game->Shell_CreateMenu( false );
-		game->Shell_Show( true );
-		game->Shell_SyncWithSession();
-		
+		//game->Shell_CreateMenu( false );
+		//game->Shell_Show( true );
+		//game->Shell_SyncWithSession();
+		//Printf( "creating the main menu!\n" );
+		game->shell_menu_InitMenu();
+		game->shell_menu_Toggle( true );
+		game->shell_menu_SyncWithSession();
+		//Printf( "main menu created!\n" );
+
+
 		// load
 		renderSystem->EndLevelLoad();
 		soundSystem->EndLevelLoad();
@@ -1834,7 +1843,7 @@ bool idCommonLocal::ProcessEvent( const sysEvent_t* event )
 			}
 			else
 			{
-				if( !game->Shell_IsActive() )
+				if( !game->shell_menu_IsActive() )
 				{
 					// menus / etc
 					if( MenuEvent( event ) )
@@ -1843,7 +1852,7 @@ bool idCommonLocal::ProcessEvent( const sysEvent_t* event )
 					}
 					
 					console->Close();
-					
+					Printf( "Process Event: start menu should start as menu is not active!\n" );
 					StartMenu();
 					return true;
 				}
@@ -1857,7 +1866,8 @@ bool idCommonLocal::ProcessEvent( const sysEvent_t* event )
 						return true;
 					}
 					
-					game->Shell_ClosePause();
+					Printf( "Process Event: since menu is active, we shall close it!\n" );
+					game->shell_menu_ClosePause();
 				}
 			}
 		}
@@ -1918,6 +1928,16 @@ idCommonLocal::ResetPlayerInput
 void idCommonLocal::ResetPlayerInput( int playerIndex )
 {
 	userCmdMgr.ResetPlayer( playerIndex );
+}
+
+/*
+========================
+idCommonLocal::FocusInputOnMenu
+========================
+*/
+void idCommonLocal::FocusInputOnMenu( bool focus )
+{
+	inputIsFocusedOnMenu = focus;
 }
 
 /*

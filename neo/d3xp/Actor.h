@@ -243,6 +243,8 @@ public:
 		return head.GetEntity();
 	};
 	
+	bool					IsDead();
+
 protected:
 	friend class			idAnimState;
 	
@@ -361,8 +363,11 @@ private:
 	void					Event_SetDamageCap( float _damageCap );
 	void					Event_SetWaitState( const char* waitState );
 	void					Event_GetWaitState();
+	void					Event_GetHealth();
 	
 };
+
+ID_INLINE bool idActor::IsDead() { return ( health <= 0 ); };
 
 } // namespace BFG
 

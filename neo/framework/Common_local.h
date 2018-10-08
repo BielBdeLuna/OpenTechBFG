@@ -183,10 +183,15 @@ public:
 	virtual const char* 		KeysFromBinding( const char* bind );
 	virtual const char* 		BindingFromKey( const char* key );
 	
+	virtual bool 				IsInGame();
+	virtual bool				IsInLoadMap();
+
+	virtual bool				IsSinglePlayer();
+
 	virtual bool				IsMultiplayer();
 	virtual bool				IsServer();
 	virtual bool				IsClient();
-	
+
 	virtual bool				GetConsoleUsed()
 	{
 		return consoleUsed;
@@ -278,6 +283,9 @@ public:
 		showShellRequested = true;
 	}
 	
+	virtual	void				FocusInputOnMenu( bool focus );
+	virtual bool				FocusInputOnGame( bool extraCondition = true ) { return inputIsFocusedOnMenu && extraCondition; };
+
 public:
 	void	Draw();			// called by gameThread
 	
@@ -518,6 +526,8 @@ private:
 	
 	bool				showShellRequested;
 	
+	bool 				inputIsFocusedOnMenu;
+
 private:
 	void	InitCommands();
 	void	InitSIMD();
@@ -529,7 +539,7 @@ private:
 	void	DumpWarnings();
 	void	LoadGameDLL();
 	void	UnloadGameDLL();
-	void	CleanupShell();
+	void	CleanupUI();
 	void	RenderBink( const char* path );
 	void	RenderSplash();
 	void	FilterLangList( idStrList* list, idStr lang );

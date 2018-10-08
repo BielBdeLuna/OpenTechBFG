@@ -78,7 +78,8 @@ void blCameraExplorer::OpenWindow() {
 void blCameraExplorer::CloseWindow() {
 	Clear();
 	common->Printf( "Camera Explorer closed!\n" );
-	impl::SetReleaseToolMouse( false );
+	//impl::SetReleaseToolMouse( false );
+	common->FocusInputOnMenu( false );
 }
 void blCameraExplorer::Update() {
 	TheCameraExplorer.Draw();
