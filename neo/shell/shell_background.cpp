@@ -11,8 +11,14 @@
 
 namespace BFG {
 
-blBackground::blBackground() {
+blBackground::blBackground( idStr material_name, idVec4 tint ) {
 	Clear();
+	material = declManager->FindMaterial( material_name.c_str() );
+	if( material == NULL ) {
+		common->Warning( "blBackground: material with name %s couldn't be found, defaulting it.\n", material_name.c_str() );
+		material = declManager->FindMaterial( "_default" );
+	}
+	colour = tint;
 }
 
 blBackground::~blBackground() {
@@ -20,49 +26,16 @@ blBackground::~blBackground() {
 }
 
 void blBackground::Clear() {
-	Clean_up();
-	active = false;
-}
-
-void blBackground::Clean_up() {
 	material = NULL;
-	colour = idVec4( 0.00f, 0.00f, 0.00f, 0.00f );
-}
-
-void blBackground::InitNone() {
-	if( active ) {
-		active = false;
-	}
-	Clean_up();
-}
-
-void blBackground::InitColour( idVec4 Colour ) {
-	if( !active ) {
-		active = true;
-	}
-
-	material = declManager->FindMaterial( "_white" );
-	colour = Colour;
-}
-
-void blBackground::InitMaterial( idStr material_name, idVec4 Tint ) {
-	if( !active ) {
-		active = true;
-	}
-
-	material = declManager->FindMaterial( material_name.c_str() );
-	if( material == NULL ) {
-		common->Error( "blBackground::InitMaterial: material with name %s couldn't be found!", material_name.c_str() );
-	}
-	colour = Tint;
+	colour = idVec4( 1.0f );
 }
 
 void blBackground::Update() {
-	if( active && ( material != NULL ) ) {
+	if( material == NULL ) {
+		return;
+	} else {
 		renderSystem->SetColor4( colour.x, colour.y, colour.z, colour.w );
 		renderSystem->DrawStretchPic( 0, 0, renderSystem->GetVirtualWidth(), renderSystem->GetVirtualHeight(), 0, 0, 1, 1, material );
-	} else {
-		return;
 	}
 }
 

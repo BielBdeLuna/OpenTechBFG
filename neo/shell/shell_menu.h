@@ -13,6 +13,7 @@
 #include "../framework/Common.h"
 #include "../imgui/ImGui_Menus.h"
 #include "../d3xp/menus/MenuState.h"
+#include "../shell/shell_flat_system.h"
 
 namespace BFG {
 
@@ -20,14 +21,7 @@ class idSoundWorld;
 class idMenuHandler_Shell;
 class idLeaderboardCallback;
 
-enum flatSystems_t
-{
-	FLAT_SYSTEM_IMGUI = -1,
-	FLAT_SYSTEM_FLEXIBLE,
-	FLAT_SYSTEM_CEGUI,
-	FLAT_SYSTEM_FLASH_SHELL,
-	NUM_FLAT_SYSTEMS // it shouldn't count IMGUI since it's not file-based
-};
+
 
 enum uiSounds_t
 {
@@ -86,7 +80,6 @@ public:
 
 private:
 	void	Clear();
-	int		Determine_the_System_level();
 	void	HandleSoundList( idStr element, int item );
 
 	idMenuHandler_Shell* 	shellHandler; // the shell system has it's own handler already coded in

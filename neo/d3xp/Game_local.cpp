@@ -5822,21 +5822,9 @@ bool idGameLocal::shell_background_IsActive() {
 	return result;
 }
 
-void idGameLocal::shell_background_InitNone() {
+void idGameLocal::shell_background_Init( idStr material_name, idVec4 tint ) {
 	if( Shell != NULL ) {
-		 Shell->Background_InitNone();
-	}
-}
-
-void idGameLocal::shell_background_InitColour( idVec4 Colour ) {
-	if( Shell != NULL ) {
-		 Shell->Background_InitColour( Colour );
-	}
-}
-
-void idGameLocal::shell_background_InitMaterial( idStr material_name, idVec4 Tint ) {
-	if( Shell != NULL ) {
-		 Shell->Background_InitMaterial( material_name, Tint );
+		 Shell->Background_Init( material_name, tint );
 	}
 }
 
@@ -5909,6 +5897,31 @@ void idGameLocal::shell_menu_UpdateClientCountdown( int countdown ) {
 void idGameLocal::shell_menu_UpdateLeaderboard( const idLeaderboardCallback* callback ) {
 	if( Shell != NULL ) {
 		Shell->Menu_UpdateLeaderboard( callback );
+	}
+}
+
+/* loading map screen */
+
+void idGameLocal::shell_loadingMap_Init( idStr mapName ) {
+	if( Shell != NULL ) {
+		Shell->LoadingMap_Init( mapName );
+	}
+}
+void idGameLocal::shell_loadingMap_SetPercentage( float percentage ) {
+	if( Shell != NULL ) {
+		Shell->LoadingMap_SetPercentage( percentage );
+	}
+}
+bool idGameLocal::shell_loadingMap_IsActive() {
+	bool result = false;
+	if( Shell != NULL ) {
+		result = Shell->LoadingMap_IsActive();
+	}
+	return result;
+}
+void idGameLocal::shell_loadingMap_Close() {
+	if( Shell != NULL ) {
+		Shell->LoadingMap_Close();
 	}
 }
 

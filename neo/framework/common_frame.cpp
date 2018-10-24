@@ -293,14 +293,14 @@ void idCommonLocal::Draw()
 		bool gameDraw = game->Draw( game->GetLocalClientNum() );
 		if( !gameDraw )	{
 			if( game->shell_IsActive() ) {
-				game->shell_background_InitColour( colorBlack );
+				game->shell_background_Init( '\0', colorBlack );
 			}/* else {
 				renderSystem->SetColor( colorBlack );
 				renderSystem->DrawStretchPic( 0, 0, renderSystem->GetVirtualWidth(), renderSystem->GetVirtualHeight(), 0, 0, 1, 1, whiteMaterial );
 			}*/
 		} else {
 			if( game->shell_IsActive() && game->shell_background_IsActive() ) {
-				game->shell_background_InitNone();
+				game->shell_background_Init( '\0', idVec4( 0.0f ) ); //this should clear the background
 			}
 		}
 		game->shell_Update();
@@ -328,14 +328,14 @@ void idCommonLocal::Draw()
 		if( !gameDraw )
 		{
 			if( game->shell_IsActive() ) {
-				game->shell_background_InitColour( colorBlack );
+				game->shell_background_Init( '\0', colorBlack );
 			}/* else {
 				renderSystem->SetColor( colorBlack );
 				renderSystem->DrawStretchPic( 0, 0, renderSystem->GetVirtualWidth(), renderSystem->GetVirtualHeight(), 0, 0, 1, 1, whiteMaterial );
 			}*/
 		} else {
 			if( game->shell_IsActive() && game->shell_background_IsActive() ) {
-				game->shell_background_InitNone();
+				game->shell_background_Init( '\0', idVec4( 0.0f ) ); //this should clear the background
 			}
 		}
 		
@@ -348,7 +348,7 @@ void idCommonLocal::Draw()
 	else
 	{
 		if( game->shell_IsActive() ) {
-			game->shell_background_InitColour( colorBlack );
+			game->shell_background_Init( '\0', colorBlack );
 		}/* else {
 			renderSystem->SetColor( colorBlack );
 			renderSystem->DrawStretchPic( 0, 0, renderSystem->GetVirtualWidth(), renderSystem->GetVirtualHeight(), 0, 0, 1, 1, whiteMaterial );

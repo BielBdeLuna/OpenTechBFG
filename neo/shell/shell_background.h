@@ -14,29 +14,15 @@
 
 namespace BFG {
 
-enum backgrounds_t
-{
-	BACKGROUND_COLOUR = 0,
-	BACKGROUND_IMAGE,
-	BACKGROUND_MATERIAL,
-	NUM_BACKGROUNDS
-};
-
 class blBackground {
 public:
-	blBackground();
+	blBackground( idStr material_name, idVec4 tint );
 	virtual ~blBackground();
-	void		InitNone();
-	void 		InitColour( idVec4 Colour );
-	void		InitMaterial( idStr material_name, idVec4 Tint );
 	void		Update();
-	bool		IsActive() { return active; };
 private:
 	void 		Clear();
-	void		Clean_up();
 	const idMaterial*	material;
 	idVec4		colour;
-	bool		active;
 };
 
 } /* namespace BFG */

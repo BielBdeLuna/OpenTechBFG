@@ -10,12 +10,12 @@
 
 //#include "../sys/sys_public.h"
 //#include "../sys/sys_session.h"
+#include <shell/shell_loadingmap.h>
 #include "../framework/Common.h"
 #include "../imgui/ImGui_Menus.h"
 #include "../d3xp/menus/MenuState.h"
 #include "../shell/shell_background.h"
 #include "../shell/shell_menu.h"
-#include "../shell/shell_nonInterface.h"
 
 namespace BFG {
 
@@ -69,16 +69,17 @@ public:
 	//void			Menu_SetCanContinue( bool valid );
 	//void			Menu_SetGameComplete();
 
-	bool			Background_IsActive();
-	void			Background_InitNone();
-	void			Background_InitColour( idVec4 Colour );
-	void			Background_InitMaterial( idStr material_name, idVec4 Tint );
+	bool			Background_IsActive() { return ( background != NULL ); };
+	void			Background_Init( idStr material_name, idVec4 tint );
+	void 			Background_Close();
 
 	//non interface are the loading screens, they are not a menu, nor they are as simple as a background
-	bool			NonInterface_IsActive();
-	void			NonInterface_Init();
-	void			NonInterface_Close();
-	void			NonInterface_Update();
+	void			LoadingMap_Init( idStr mapName );
+	idDict			LoadingMap_GatherData( idStr mapName );
+	void			LoadingMap_SetPercentage( float percentage );
+	bool			LoadingMap_IsActive() {  return ( loadingMap != NULL ); };
+	void			LoadingMap_Close();
+
 
 	//heads Up Dispaly  or HUD are a sub-family of a non inreface
 	//void			HUD_Init();
@@ -91,7 +92,7 @@ protected:
 
 	blMenu*			menu;
 	blBackground*	background;
-	blNonInterface*	nonInterface;
+	blLoadingMap *	loadingMap;
 	//blHud*		headsUpDisplay;
 
 	int				transition_ideal;

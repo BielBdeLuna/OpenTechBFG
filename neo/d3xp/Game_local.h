@@ -634,9 +634,7 @@ public:
 	virtual	void				shell_Update();
 
 	virtual bool				shell_background_IsActive();
-	virtual void				shell_background_InitNone();
-	virtual void				shell_background_InitColour( idVec4 Colour );
-	virtual void				shell_background_InitMaterial( idStr material_name, idVec4 Tint );
+	virtual void				shell_background_Init( idStr material_name, idVec4 tint );
 
 	virtual void				shell_menu_Cleanup();
 	virtual void				shell_menu_Init( idSoundWorld* sw, idStr filename = NULL );
@@ -650,6 +648,11 @@ public:
 	virtual void				shell_menu_UpdateSavedGames();
 	virtual void				shell_menu_UpdateClientCountdown( int countdown );
 	virtual void				shell_menu_UpdateLeaderboard( const idLeaderboardCallback* callback );
+
+	virtual void				shell_loadingMap_Init( idStr mapName );
+	virtual void				shell_loadingMap_SetPercentage( float percentage );
+	virtual bool				shell_loadingMap_IsActive();
+	virtual void				shell_loadingMap_Close();
 
 	const char* 			GetMapFileName()
 	{

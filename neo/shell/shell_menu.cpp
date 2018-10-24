@@ -10,11 +10,9 @@
 
 namespace BFG {
 
-idCVar ui_flat_SytemLevelThreshold( "ui_flat_SytemLevelThreshold", "-1", CVAR_INTEGER | CVAR_SYSTEM | CVAR_GUI, "set a forced system level threshold to be used in flat GUIs from a probable set of diverging capabilities, where:\n -1 --> imGUI\n 0 --> GUI\n 1 --> ceGUI\n 2 --> flash based GUI\n" );
-
 blMenu::blMenu( idSoundWorld* sw, idStr filename ) {
 	Clear();
-	flatSystemLevel = Determine_the_System_level();
+	flatSystemLevel = Determine_flat_System_level();
 	SoundList.Clear();
 	switch( flatSystemLevel ) {
 		case FLAT_SYSTEM_IMGUI:
@@ -54,28 +52,6 @@ void blMenu::Clear() {
 	MenuSW = NULL;
 	SoundList.Clear();
 	flatSystemLevel = 0;
-}
-
-int blMenu::Determine_the_System_level() {
-	bool	Gui_exists = false;
-	int decide = ui_flat_SytemLevelThreshold.GetInteger();
-	int result = decide;
-
-	if( /*something yet to be determined*/ true ) { //TODO
-		Gui_exists = false;
-	}
-
-	if( !Gui_exists ) {
-		result =  FLAT_SYSTEM_IMGUI;
-	} else {
-		if( decide >= FLAT_SYSTEM_FLEXIBLE ) {
-			result = decide;
-		} else {
-			result = FLAT_SYSTEM_IMGUI;
-		}
-	}
-	return result;
-
 }
 
 void blMenu::HandleSoundList( idStr element, int item ) {
@@ -182,7 +158,7 @@ void blMenu::ToggleMenu( bool preference ) {
 }
 
 void blMenu::Update() {
-	flatSystemLevel = Determine_the_System_level();
+	flatSystemLevel = Determine_flat_System_level();
 	switch( flatSystemLevel ) {
 		case FLAT_SYSTEM_IMGUI:
 			menu_ImGui->Draw();

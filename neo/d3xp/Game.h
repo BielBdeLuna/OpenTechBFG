@@ -201,9 +201,7 @@ public:
 	virtual	void				shell_Update() = 0;
 
 	virtual bool				shell_background_IsActive() = 0;
-	virtual void				shell_background_InitNone() = 0;
-	virtual void				shell_background_InitColour( idVec4 Colour ) = 0;
-	virtual void				shell_background_InitMaterial( idStr material_name, idVec4 Tint ) = 0;
+	virtual void				shell_background_Init( idStr material_name, idVec4 tint ) = 0;
 
 	virtual void				shell_menu_Cleanup() = 0;
 	virtual void				shell_menu_Init( idSoundWorld* sw, idStr filename = NULL ) = 0;
@@ -217,6 +215,11 @@ public:
 	virtual void				shell_menu_UpdateSavedGames() = 0;
 	virtual void				shell_menu_UpdateClientCountdown( int countdown ) = 0;
 	virtual void				shell_menu_UpdateLeaderboard( const idLeaderboardCallback* callback ) = 0;
+
+	virtual void				shell_loadingMap_Init( idStr mapName ) = 0;
+	virtual void				shell_loadingMap_SetPercentage( float percentage ) = 0;
+	virtual bool				shell_loadingMap_IsActive() = 0;
+	virtual void				shell_loadingMap_Close() = 0;
 
 };
 

@@ -162,6 +162,7 @@ public:
 	
 	size_t				Size() const;
 	const char* 		c_str() const;
+	float				c_float() const;
 	operator			const char* () const;
 	operator			const char* ();
 	
@@ -678,6 +679,10 @@ ID_INLINE idStr::operator const char* ()
 ID_INLINE idStr::operator const char* () const
 {
 	return c_str();
+}
+
+ID_INLINE float idStr::c_float() const {
+	return std::strtof ( data, NULL);
 }
 
 ID_INLINE char idStr::operator[]( int index ) const

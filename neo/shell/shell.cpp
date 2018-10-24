@@ -6,17 +6,22 @@
  */
 
 #include <shell/shell.h>
+#include "../shell/shell_flat_system.h"
 
 namespace BFG {
 
 blShell::blShell() {
 	Clear();
-	//the menu system will be initiated much latter, for now we can init the background system.
-	background = new( TAG_OLD_UI ) blBackground();
 	shellActive = true;
 }
 
 blShell::~blShell() {
+	if( Background_IsActive() ) {
+		Background_Close();
+	}
+	if( LoadingMap_IsActive() ) {
+		LoadingMap_Close();
+	}
 	Clear();
 }
 
@@ -27,13 +32,13 @@ void blShell::Clear() {
 	menuInFocus = false;
 	background = NULL;
 	shellActive = false;
-	nonInterface = NULL;
+	loadingMap = NULL;
 
 }
 
 void blShell::Update() {
 	//draw the background if necessary
-	if( ( background != NULL ) && ( background->IsActive() ) ) {
+	if( Background_IsActive() ) {
 		background->Update();
 	}
 	//update the menu
@@ -41,8 +46,8 @@ void blShell::Update() {
 		menu->Update();
 	}
 	//update the nonInterfaces
-	if( ( nonInterface != NULL ) && ( nonInterface->IsActive() ) ) {
-		nonInterface->Update();
+	if( LoadingMap_IsActive() ) {
+		loadingMap->Update();
 	}
 }
 
@@ -94,49 +99,90 @@ void blShell::Menu_UpdateLeaderboard( const idLeaderboardCallback* callback ) {
 	menu->Menu_UpdateLeaderboard( callback );
 }
 
-bool blShell::Background_IsActive() {
-	bool result = false;
-	if( background != NULL ) {
-		result = background->IsActive();
+void blShell::Background_Init( idStr material_name, idVec4 tint ) {
+	Background_Close();
+
+	if( material_name.IsEmpty() ) {
+		if( tint.Compare( idVec4( 0.0f ) ) == false ) { // the tint colour is not translucent therefore meaningless
+			material_name = "_white";
+		} else {
+			return; //no background due the tint colour being meaningless
+		}
 	}
-	return result;
+
+	blBackground background = new( TAG_OLD_UI ) blBackground( material_name, tint );
 }
 
-void blShell::Background_InitNone() {
-	if( background != NULL ) {
-		background->InitNone();
-	}
-}
 
-void blShell::Background_InitColour( idVec4 Colour ) {
-	if( background != NULL ) {
-		background->InitColour( Colour );
-	}
-}
-
-void blShell::Background_InitMaterial( idStr material_name, idVec4 Tint ) {
-	if( background != NULL ) {
-		background->InitMaterial( material_name, Tint );
+void blShell::Background_Close() {
+	if( Background_IsActive() ) {
+		delete background;
+		background = NULL;
 	}
 }
 
 //NON-INTERFACE
 
-bool blShell::NonInterface_IsActive() {
-	bool result = false;
-	if( nonInterface != NULL ) {
-		result = nonInterface->IsActive();
+void blShell::LoadingMap_Init( idStr mapName ) {
+	idDict data = LoadingMap_GatherData( mapName );
+
+	//set a new background
+	if( Background_IsActive() ) {
+		Background_Close();
 	}
-	return result;
+
+	Background_Init( data.GetString( "background_material", "default_loading_background" ), data.GetVec4("background_tint", "0, 0, 0, 1.0" ) );
+
+	//add the loading screen on top
+	if( LoadingMap_IsActive() ) {
+		loadingMap->SetWholeData( data );
+	} else {
+		loadingMap = new( TAG_OLD_UI ) blLoadingMap( data );
+	}
 }
 
-void blShell::NonInterface_Init() {
-	nonInterface = new( TAG_OLD_UI ) blNonInterface();
+idDict blShell::LoadingMap_GatherData( idStr mapName ) {
+	idDict generatedData;
+
+	//default values
+	//generatedData.Set( "background_material", "default_loading_background" );
+	//generatedData.Set( "background_tint", "0, 0, 0, 1.0" );
+	generatedData.Set( "name", mapName );
+
+	//TODO create a way to gather a tip from a list of tips that is not hard-coded and is multi-lingual
+	generatedData.Set( "tip", "press 'shift' to run.\n Running is like walking, only faster!\n" );
+
+	/*
+	if( Determine_flat_System_level() != FLAT_SYSTEM_IMGUI ) {
+		//TODO gather the name somewhat using the mapName
+	} else {
+		//TODO the same above
+
+	}
+	*/
+
+	return generatedData;
 }
 
-void blShell::NonInterface_Close() {
-	delete nonInterface;
-	nonInterface = NULL;
+void blShell::LoadingMap_SetPercentage( float _percentage ) {
+	if( _percentage > 100.0f ) {
+		_percentage = 100.0f;
+	} else if( _percentage < 0.0f ) {
+		_percentage = 0.0f;
+	}
+
+	loadingMap->percentage = _percentage;
+}
+
+void blShell::LoadingMap_Close() {
+	if( LoadingMap_IsActive() ) {
+		delete loadingMap;
+		loadingMap = NULL;
+	}
+
+	Background_Close();
+
+	//TODO return the focus of the controls from the shell to the game
 }
 
 } /* namespace BFG */
