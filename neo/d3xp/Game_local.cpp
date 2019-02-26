@@ -5908,7 +5908,7 @@ void idGameLocal::shell_loadingMap_Init( idStr mapName ) {
 	}
 }
 void idGameLocal::shell_loadingMap_SetPercentage( float percentage ) {
-	if( Shell != NULL ) {
+	if( shell_loadingMap_IsActive() ) {
 		Shell->LoadingMap_SetPercentage( percentage );
 	}
 }
@@ -5919,8 +5919,17 @@ bool idGameLocal::shell_loadingMap_IsActive() {
 	}
 	return result;
 }
+
+bool idGameLocal::shell_LoadingMap_SetWaiting( bool Switch ) {
+	bool result = false;
+	if( shell_loadingMap_IsActive() ) {
+		Shell->LoadingMap_SetWaiting( Switch ); // if this is negative it forces the Shell to close the LoadingMap object
+	}
+	return Switch;
+}
+
 void idGameLocal::shell_loadingMap_Close() {
-	if( Shell != NULL ) {
+	if( shell_loadingMap_IsActive() ) {
 		Shell->LoadingMap_Close();
 	}
 }

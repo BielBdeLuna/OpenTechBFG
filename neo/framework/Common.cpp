@@ -1703,7 +1703,7 @@ void idCommonLocal::CreateMainMenu()
 }
 
 /*
-===============God
+===============
 idCommonLocal::Stop
 
 called on errors and game exits

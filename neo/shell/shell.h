@@ -78,6 +78,8 @@ public:
 	idDict			LoadingMap_GatherData( idStr mapName );
 	void			LoadingMap_SetPercentage( float percentage );
 	bool			LoadingMap_IsActive() {  return ( loadingMap != NULL ); };
+	bool			LoadingMap_GetWaiting();
+	void			LoadingMap_SetWaiting( bool Switch );
 	void			LoadingMap_Close();
 
 
@@ -114,6 +116,8 @@ protected:
 	//struct MenuVars;
 	//MenuVars* ourVars;
 };
+
+extern blShell* 	shell;
 
 } /* namespace BFG */
 

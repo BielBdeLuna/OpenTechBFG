@@ -219,6 +219,7 @@ public:
 	virtual void				shell_loadingMap_Init( idStr mapName ) = 0;
 	virtual void				shell_loadingMap_SetPercentage( float percentage ) = 0;
 	virtual bool				shell_loadingMap_IsActive() = 0;
+	virtual bool				shell_LoadingMap_SetWaiting( bool Switch ) = 0;
 	virtual void				shell_loadingMap_Close() = 0;
 
 };
@@ -370,6 +371,7 @@ typedef struct
 	idDeclManager* 				declManager;			// declaration manager
 	idAASFileManager* 			AASFileManager;			// AAS file manager
 	idCollisionModelManager* 	collisionModelManager;	// collision model manager
+	blShell*					shell;					// the shell system
 	
 } gameImport_t;
 

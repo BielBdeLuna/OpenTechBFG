@@ -12,6 +12,7 @@ namespace BFG {
 
 blLoadingMap::blLoadingMap( idDict _data ) {
 	percentage = 0.0f;
+	IsWaiting = false;
 	if( Determine_flat_System_level() != FLAT_SYSTEM_IMGUI ) {
 		DataManager();
 	} else {

@@ -47,6 +47,7 @@ class idDemoFile;
 class idUserInterface;
 class idSaveLoadParms;
 class idMatchParameters;
+class blShell;
 
 class idEntity; // for InitTool()
 
@@ -321,6 +322,7 @@ public:
 	virtual idRenderWorld* 		RW() = 0;
 	virtual idSoundWorld* 		SW() = 0;
 	virtual idSoundWorld* 		MenuSW() = 0;
+	virtual	blShell*			Shell() = 0;
 	virtual idSession* 			Session() = 0;
 	virtual idCommonDialog& 	Dialog() = 0;
 	

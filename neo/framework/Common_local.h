@@ -32,6 +32,7 @@ If you have questions concerning this license or the applicable additional terms
 #include "../framework/File_SaveGame.h"  // for idFile_SaveGame, etc
 #include "../d3xp/Game.h"               // for gameReturn_t (ptr only), etc
 #include "../framework/UsercmdGen.h"    // for idUserCmdMgr, idUsercmdGen, etc
+#include "../shell/shell.h"
 
 namespace BFG
 {
@@ -236,6 +237,9 @@ public:
 	virtual idSoundWorld* 		MenuSW()
 	{
 		return menuSoundWorld;
+	}
+	virtual blShell *			Shell(){
+		return shell;
 	}
 	virtual idSession* 			Session()
 	{

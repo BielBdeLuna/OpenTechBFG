@@ -303,7 +303,8 @@ void idCommonLocal::Draw()
 				game->shell_background_Init( '\0', idVec4( 0.0f ) ); //this should clear the background
 			}
 		}
-		game->shell_Update();
+		//game->shell_Update(); //no longer tied to game
+		shell->Update();
 	}
 	else if( readDemo )
 	{

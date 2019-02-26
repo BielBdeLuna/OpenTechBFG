@@ -652,6 +652,7 @@ public:
 	virtual void				shell_loadingMap_Init( idStr mapName );
 	virtual void				shell_loadingMap_SetPercentage( float percentage );
 	virtual bool				shell_loadingMap_IsActive();
+	virtual bool				shell_LoadingMap_SetWaiting( bool Switch ); // it will enable the waiting for the player input or not after loading the map
 	virtual void				shell_loadingMap_Close();
 
 	const char* 			GetMapFileName()

@@ -21,9 +21,13 @@ public:
 	blLoadingMap( idDict _data );
 	void			Update();
 	float			percentage;
+	bool			GetWaiting() { return IsWaiting; };
+	void			SetWaiting( bool Switch ) { IsWaiting = Switch; };
+
 private:
 	void			imGuiDraw();
 	void			DataManager();
+	bool			IsWaiting; // this case is only active if the shell need the user to confirm after loading the map
 
 };
 
