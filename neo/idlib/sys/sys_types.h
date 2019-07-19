@@ -108,7 +108,7 @@ struct idNullPtr
 	idNullPtr() : value( 0 ) { }
 	
 	// implicit conversion to all pointer types
-	template<typename T1> operator T1* () const
+	template<typename T1> constexpr operator T1* () const
 	{
 		return 0;
 	}
