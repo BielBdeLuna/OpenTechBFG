@@ -280,7 +280,7 @@ void idCommonLocal::Draw()
 	{
 		loadGUI->Render( renderSystem, Sys_Milliseconds() );
 	}
-	else if( game/* && game->shell_isActive() )
+	else if( game/* && shell->Check_MenuActive() )
 	{
 		bool gameDraw = game->Draw( game->GetLocalClientNum() );
 		if( !gameDraw )
@@ -292,14 +292,14 @@ void idCommonLocal::Draw()
 	} else if( game*/ ) {
 		bool gameDraw = game->Draw( game->GetLocalClientNum() );
 		if( !gameDraw )	{
-			if( game->shell_IsActive() ) {
+			if( shell->Check_MenuActive() ) {
 				game->shell_background_Init( '\0', colorBlack );
 			}/* else {
 				renderSystem->SetColor( colorBlack );
 				renderSystem->DrawStretchPic( 0, 0, renderSystem->GetVirtualWidth(), renderSystem->GetVirtualHeight(), 0, 0, 1, 1, whiteMaterial );
 			}*/
 		} else {
-			if( game->shell_IsActive() && game->shell_background_IsActive() ) {
+			if( shell->Check_MenuActive() && game->shell_background_IsActive() ) {
 				game->shell_background_Init( '\0', idVec4( 0.0f ) ); //this should clear the background
 			}
 		}
@@ -328,14 +328,14 @@ void idCommonLocal::Draw()
 		}
 		if( !gameDraw )
 		{
-			if( game->shell_IsActive() ) {
+			if( shell->Check_MenuActive() ) {
 				game->shell_background_Init( '\0', colorBlack );
 			}/* else {
 				renderSystem->SetColor( colorBlack );
 				renderSystem->DrawStretchPic( 0, 0, renderSystem->GetVirtualWidth(), renderSystem->GetVirtualHeight(), 0, 0, 1, 1, whiteMaterial );
 			}*/
 		} else {
-			if( game->shell_IsActive() && game->shell_background_IsActive() ) {
+			if( shell->Check_MenuActive() && game->shell_background_IsActive() ) {
 				game->shell_background_Init( '\0', idVec4( 0.0f ) ); //this should clear the background
 			}
 		}
@@ -348,7 +348,7 @@ void idCommonLocal::Draw()
 	}
 	else
 	{
-		if( game->shell_IsActive() ) {
+		if( shell->Check_MenuActive() ) {
 			game->shell_background_Init( '\0', colorBlack );
 		}/* else {
 			renderSystem->SetColor( colorBlack );
@@ -417,7 +417,7 @@ idCommonLocal::ProcessGameReturn
 void idCommonLocal::ProcessGameReturn( const gameReturn_t& ret )
 {
 	// set joystick rumble
-	if( in_useJoystick.GetBool() && in_joystickRumble.GetBool() && !game->shell_IsActive() && session->GetSignInManager().GetMasterInputDevice() >= 0 )
+	if( in_useJoystick.GetBool() && in_joystickRumble.GetBool() && !shell->Check_MenuActive() && session->GetSignInManager().GetMasterInputDevice() >= 0 )
 	{
 		Sys_SetRumble( session->GetSignInManager().GetMasterInputDevice(), ret.vibrationLow, ret.vibrationHigh );		// Only set the rumble on the active controller
 	}
@@ -497,14 +497,14 @@ void idCommonLocal::Frame()
 		
 		// DG: prepare new ImGui frame - I guess this is a good place, as all new events should be available?
 		ImGuiHook::NewFrame();
-		
+		/*
 		// Activate the shell if it's been requested
 		if( showShellRequested && game )
 		{
 			game->shell_menu_Toggle( true );
 			showShellRequested = false;
 		}
-		
+		*/
 		// if the console or another gui is down, we don't need to hold the mouse cursor
 		bool chatting = false;
 		
@@ -513,20 +513,24 @@ void idCommonLocal::Frame()
 				|| ( game && game->InhibitControls() ) /*|| Tools::ReleaseMouseForTools()*/ || common->FocusInputOnGame() )
 			// DG end
 		{
-			Sys_GrabMouseCursor( false );
-			usercmdGen->InhibitUsercmd( INHIBIT_SESSION, true );
+			//Sys_GrabMouseCursor( false );
+			shell->ToggleMouseCursorFocus( false );
+			//usercmdGen->InhibitUsercmd( INHIBIT_SESSION, true );
+			shell->InhibitUserCommandsGeneration( true );
 			chatting = true;
 		}
 		else
 		{
-			Sys_GrabMouseCursor( true );
-			usercmdGen->InhibitUsercmd( INHIBIT_SESSION, false );
+			//Sys_GrabMouseCursor( true );
+			shell->ToggleMouseCursorFocus( true );
+			//usercmdGen->InhibitUsercmd( INHIBIT_SESSION, false );
+			shell->InhibitUserCommandsGeneration( false );
 		}
 		
 		const bool pauseGame = ( !mapSpawned
 								 || ( !IsMultiplayer()
 									  && ( Dialog().IsDialogPausing() || session->IsSystemUIShowing()
-										   || ( game && game->shell_IsActive() ) || com_pause.GetInteger() ) ) );
+										   || ( game && shell->Check_MenuActive() ) || com_pause.GetInteger() ) ) );
 										   
 		// save the screenshot and audio from the last draw if needed
 		if( aviCaptureMode )
@@ -798,7 +802,7 @@ void idCommonLocal::Frame()
 		if( pauseGame )
 		{
 			soundWorld->Pause();
-			soundSystem->SetPlayingSoundWorld( menuSoundWorld );
+			//soundSystem->SetPlayingSoundWorld( menuSoundWorld );
 		}
 		else
 		{

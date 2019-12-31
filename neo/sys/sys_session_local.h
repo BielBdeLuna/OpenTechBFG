@@ -380,6 +380,7 @@ public:
 	virtual sessionState_t	GetBackState();
 	virtual void			Cancel();
 	virtual void			MoveToPressStart();
+	virtual	void			MoveToMainMenu();				// End all session (async), and return to IDLE state
 	virtual void			FinishDisconnect();
 	virtual bool			ShouldShowMigratingDialog() const;	// Note this is not in sys_session.h
 	virtual bool			IsCurrentLobbyMigrating() const;
@@ -877,7 +878,7 @@ protected:
 	void	StartSessions();
 	void	EndSessions();
 	void	SetLobbiesAreJoinable( bool joinable );
-	void	MoveToMainMenu();				// End all session (async), and return to IDLE state
+	//void	MoveToMainMenu();				// End all session (async), and return to IDLE state
 	bool	WaitOnLobbyCreate( idLobby& lobby );
 	bool	DetectDisconnectFromService( bool cancelAndShowMsg );
 	void	HandleConnectionFailed( idLobby& lobby, bool wasFull );

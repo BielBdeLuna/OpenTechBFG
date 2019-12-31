@@ -47,7 +47,6 @@ class idDemoFile;
 class idUserInterface;
 class idSaveLoadParms;
 class idMatchParameters;
-class blShell;
 
 class idEntity; // for InitTool()
 
@@ -321,8 +320,7 @@ public:
 	virtual idGame* 			Game() = 0;
 	virtual idRenderWorld* 		RW() = 0;
 	virtual idSoundWorld* 		SW() = 0;
-	virtual idSoundWorld* 		MenuSW() = 0;
-	virtual	blShell*			Shell() = 0;
+	//virtual idSoundWorld* 		MenuSW() = 0;
 	virtual idSession* 			Session() = 0;
 	virtual idCommonDialog& 	Dialog() = 0;
 	
@@ -351,6 +349,14 @@ public:
 	virtual	void				FocusInputOnMenu( bool focus ) = 0;
 	virtual bool				FocusInputOnGame( bool extraCondition = true ) = 0;
 
+	virtual uint64 *			Pt_TimeFrontEnd = 0;	// pointer to renderer frontend time
+	virtual uint64 *			Pt_TimeBackEnd = 0; 	// pointer to renderer backend time
+	virtual uint64 *			Pt_TimeShadows = 0;		// pointer to renderer backend waiting for shadow volumes to be created
+	virtual uint64 *			Pt_TimeGpu = 0; 		// pointer to total gpu time, at least for PC
+
+	virtual void				Force_RenderSystem_RenderCommandBuffer() = 0;
+
+	virtual void				StopPlayingDemo() = 0;
 };
 
 extern idCommon* 		common;

@@ -32,7 +32,6 @@ If you have questions concerning this license or the applicable additional terms
 #include "../framework/File_SaveGame.h"  // for idFile_SaveGame, etc
 #include "../d3xp/Game.h"               // for gameReturn_t (ptr only), etc
 #include "../framework/UsercmdGen.h"    // for idUserCmdMgr, idUsercmdGen, etc
-#include "../shell/shell.h"
 
 namespace BFG
 {
@@ -234,13 +233,6 @@ public:
 	{
 		return soundWorld;
 	}
-	virtual idSoundWorld* 		MenuSW()
-	{
-		return menuSoundWorld;
-	}
-	virtual blShell *			Shell(){
-		return shell;
-	}
 	virtual idSession* 			Session()
 	{
 		return session;
@@ -289,6 +281,13 @@ public:
 	
 	virtual	void				FocusInputOnMenu( bool focus );
 	virtual bool				FocusInputOnGame( bool extraCondition = true ) { return inputIsFocusedOnMenu && extraCondition; };
+
+	virtual uint64 *			Pt_TimeFrontEnd = &time_frontend;	// pointer to renderer frontend time
+	virtual uint64 *			Pt_TimeBackEnd = &time_backend; 	// pointer to renderer backend time
+	virtual uint64 *			Pt_TimeShadows = &time_shadows;		// pointer to renderer backend waiting for shadow volumes to be created
+	virtual uint64 *			Pt_TimeGpu = &time_gpu; 		// pointer to total gpu time, at least for PC
+
+	virtual void				Force_RenderSystem_RenderCommandBuffer();
 
 public:
 	void	Draw();			// called by gameThread
@@ -345,6 +344,7 @@ public:	// These are public because they are called directly by static functions
 	void	TimeRenderDemo( const char* name, bool twice = false, bool quit = false );
 	void	AVIRenderDemo( const char* name );
 	void	AVIGame( const char* name );
+	void 	StopPlayingDemo();
 	
 	// localization
 	void	InitLanguageDict();
@@ -356,7 +356,7 @@ public:	// These are public because they are called directly by static functions
 	{
 		return userCmdMgr;
 	}
-	
+
 private:
 	bool						com_fullyInitialized;
 	bool						com_refreshOnPrint;		// update the screen every print for dmap
@@ -394,7 +394,6 @@ private:
 	idDemoFile* 		writeDemo;
 	
 	bool				menuActive;
-	idSoundWorld* 		menuSoundWorld;			// so the game soundWorld can be muted
 	
 	bool				insideExecuteMapChange;	// Enable Pacifier Updates
 	
@@ -600,7 +599,7 @@ private:
 	void	PlayIntroGui();
 	
 	void	ScrubSaveGameFileName( idStr& saveFileName ) const;
-	
+
 };
 
 extern idCommonLocal commonLocal;

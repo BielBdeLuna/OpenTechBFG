@@ -630,7 +630,7 @@ public:
 	virtual	void				SetGameCoompleted() { GameCompleted = true; };
 	virtual	bool				GetGameCoompleted() { return GameCompleted; };
 
-	virtual bool				shell_IsActive();
+	//virtual bool				shell_IsActive();
 	virtual	void				shell_Update();
 
 	virtual bool				shell_background_IsActive();

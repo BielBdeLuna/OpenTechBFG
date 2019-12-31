@@ -68,6 +68,7 @@ If you have questions concerning this license or the applicable additional terms
 #include "../renderer/RenderSystem.h"
 #include "../renderer/RenderWorld.h"
 #include "../sound/sound.h"
+#include "../shell/shell.h"
 #include "../swf/SWF.h"
 #include "../sys/Snapshot.h"
 #include "../sys/sys_achievements.h"
@@ -164,7 +165,8 @@ idCommonLocal	commonLocal;
 idCommon* 		common = &commonLocal;
 
 // RB: defaulted this to 1 because we don't have a sound for the intro .bik video
-idCVar com_skipIntroVideos( "com_skipIntroVideos", "1", CVAR_BOOL , "skips intro videos" );
+idCVar com_skipIntroVideos( "com_skipIntroVideos", "1", CVAR_BOOL, "skips intro videos" );
+idCVar com_skipDemosForMenu( "com_skipDemosForMenu", "1", CVAR_BOOL, "skips the loading and playing of the demos under the Main Menu" );
 
 /*
 ==================
@@ -214,8 +216,6 @@ idCommonLocal::idCommonLocal() :
 	wipeForced = false;
 	defaultLoadscreen = false;
 	
-	menuSoundWorld = NULL;
-	
 	insideUpdateScreen = false;
 	insideExecuteMapChange = false;
 	
@@ -226,7 +226,6 @@ idCommonLocal::idCommonLocal() :
 	
 	renderWorld = NULL;
 	soundWorld = NULL;
-	menuSoundWorld = NULL;
 	readDemo = NULL;
 	writeDemo = NULL;
 	
@@ -918,6 +917,15 @@ CONSOLE_COMMAND( finishBuild, "finishes the build process", NULL )
 
 /*
 =================
+idCommonLocal::Force_RenderSystemSwapCommandBuffer
+=================
+*/
+void idCommonLocal::Force_RenderSystem_RenderCommandBuffer() {
+	renderSystem->RenderCommandBuffers( renderSystem->SwapCommandBuffers( &time_frontend, &time_backend, &time_shadows, &time_gpu ) );
+}
+
+/*
+=================
 idCommonLocal::RenderSplash
 =================
 */
@@ -1226,6 +1234,7 @@ void idCommonLocal::Init( int argc, const char* const* argv, const char* cmdline
 		idLib::common		= common;
 		idLib::cvarSystem	= cvarSystem;
 		idLib::fileSystem	= fileSystem;
+		idLib::shell		= shell;
 		
 		// initialize idLib
 		idLib::Init();
@@ -1259,8 +1268,11 @@ void idCommonLocal::Init( int argc, const char* const* argv, const char* cmdline
 		// print engine version
 		Printf( "%s\n", version.string );
 		
+		//shell init
+		shell->Init();
+
 		// initialize key input/binding, done early so bind command exists
-		idKeyInput::Init();
+		idKeyInput::Init(); //TODO this might be started by the Synchronized shell
 		
 		// init the console so we can take prints
 		console->Init();
@@ -1287,8 +1299,7 @@ void idCommonLocal::Init( int argc, const char* const* argv, const char* cmdline
 		// initialize the file system
 		fileSystem->Init();
 		
-		const char* defaultLang = Sys_DefaultLanguage();
-		com_isJapaneseSKU = ( idStr::Icmp( defaultLang, ID_LANG_JAPANESE ) == 0 );
+		com_isJapaneseSKU = ( idStr::Icmp( Sys_DefaultLanguage(), ID_LANG_JAPANESE ) == 0 );
 		
 		// Allow the system to set a default lanugage
 		Sys_SetLanguageFromSystem();
@@ -1347,26 +1358,33 @@ void idCommonLocal::Init( int argc, const char* const* argv, const char* cmdline
 		// initialize the renderSystem data structures
 		renderSystem->Init();
 		
+		/*
 		whiteMaterial = declManager->FindMaterial( "_white" );
 		
 		if( idStr::Icmp( sys_lang.GetString(), ID_LANG_FRENCH ) == 0 )
 		{
 			// If the user specified french, we show french no matter what SKU
-			splashScreen = declManager->FindMaterial( "guis/assets/splash/legal_french" );
+			splashScreen = declManager->FindMaterial( "guis/assets/splash/legal_francophonie" );
 		}
 		else if( idStr::Icmp( defaultLang, ID_LANG_FRENCH ) == 0 )
 		{
 			// If the lead sku is french (ie: europe), display figs
-			splashScreen = declManager->FindMaterial( "guis/assets/splash/legal_figs" );
+			splashScreen = declManager->FindMaterial( "guis/assets/splash/legal_euro_figs" );
 		}
 		else
 		{
 			// Otherwise show it in english
-			splashScreen = declManager->FindMaterial( "guis/assets/splash/legal_english" );
+			splashScreen = declManager->FindMaterial( "guis/assets/splash/legal_anglosphere" );
 		}
-		
-		const int legalMinTime = 4000;
-		const bool showVideo = ( !com_skipIntroVideos.GetBool() && fileSystem->UsingResourceFiles() );
+		*/
+		//const int legalMinTime = 4000;
+		//const bool showVideo = ( !com_skipIntroVideos.GetBool() && fileSystem->UsingResourceFiles() );
+
+		/* //there was going to be a synch / asynch shell it no longer needs to exist
+		// initialize the shell
+		shell->InitSynch();
+		*/
+			/*
 		if( showVideo )
 		{
 			RenderBink( "video\\loadvideo.bik" );
@@ -1382,7 +1400,7 @@ void idCommonLocal::Init( int argc, const char* const* argv, const char* cmdline
 			RenderSplash();
 		}
 		
-		
+			*/
 		int legalStartTime = Sys_Milliseconds();
 		declManager->Init2();
 		
@@ -1400,9 +1418,12 @@ void idCommonLocal::Init( int argc, const char* const* argv, const char* cmdline
 		usercmdGen->Init();
 		
 		Sys_SetRumble( 0, 0, 0 );
-		
+
 		// initialize the user interfaces
 		uiManager->Init();
+
+		//initiate the shell manager
+		shellManager->Init();
 		
 		// startup the script debugger
 		// DebuggerServerInit();
@@ -1436,15 +1457,12 @@ void idCommonLocal::Init( int argc, const char* const* argv, const char* cmdline
 		renderWorld = renderSystem->AllocRenderWorld();
 		soundWorld = soundSystem->AllocSoundWorld( renderWorld );
 		
-		menuSoundWorld = soundSystem->AllocSoundWorld( NULL );
-		menuSoundWorld->PlaceListener( vec3_origin, mat3_identity, 0 );
-		
 		// init the session
 		session->Initialize();
-		session->InitializeSoundRelatedSystems();
+		session->InitializeSoundRelatedSystems(); //the voice chat system
 		
-		// Init main menu
-		game->shell_menu_Init( menuSoundWorld, "Main Menu" );
+		// Shell Manager should start the Menu Content
+		shellManager->StartContent();
 
 		InitializeMPMapsModes();
 		
@@ -1453,23 +1471,23 @@ void idCommonLocal::Init( int argc, const char* const* argv, const char* cmdline
 		{
 			game->Leaderboards_Init();
 		}
-		CreateMainMenu();
-		commonDialog.Init();
+		//CreateMainMenu();
+		commonDialog.Init(); //FIXME what is this?
 		
 		// load the console history file
 		consoleHistory.LoadHistoryFile();
 		
 		AddStartupCommands();
 		
-		StartMenu( true );
-		
+		//StartMenu( true );
+		/*
 		while( Sys_Milliseconds() - legalStartTime < legalMinTime )
 		{
 			RenderSplash();
 			Sys_GenerateEvents();
 			Sys_Sleep( 10 );
 		};
-		
+		*/
 		// print all warnings queued during initialization
 		PrintWarnings();
 		
@@ -1491,7 +1509,7 @@ void idCommonLocal::Init( int argc, const char* const* argv, const char* cmdline
 		
 		com_fullyInitialized = true;
 		
-		
+		/*
 		// No longer need the splash screen
 		if( splashScreen != NULL )
 		{
@@ -1504,7 +1522,7 @@ void idCommonLocal::Init( int argc, const char* const* argv, const char* cmdline
 				}
 			}
 		}
-		
+		*/
 		Printf( "--- Common Initialization Complete ---\n" );
 		
 		idLib::Printf( "QA Timing IIS: %06dms\n", Sys_Milliseconds() );
@@ -1565,6 +1583,9 @@ void idCommonLocal::Shutdown()
 	printf( "ImGuiHook::Destroy();\n" );
 	ImGuiHook::Destroy();
 	
+	printf( "shell->Shutdown();\n" );
+	shell->Shutdown();
+
 	printf( "delete renderWorld;\n" );
 	delete renderWorld;
 	renderWorld = NULL;
@@ -1572,10 +1593,6 @@ void idCommonLocal::Shutdown()
 	printf( "delete soundWorld;\n" );
 	delete soundWorld;
 	soundWorld = NULL;
-	
-	printf( "delete menuSoundWorld;\n" );
-	delete menuSoundWorld;
-	menuSoundWorld = NULL;
 	
 	// shut down the session
 	printf( "session->ShutdownSoundRelatedSystems();\n" );
@@ -1843,6 +1860,8 @@ bool idCommonLocal::ProcessEvent( const sysEvent_t* event )
 			}
 			else
 			{
+				console->Close();
+				/*
 				if( !game->shell_menu_IsActive() )
 				{
 					// menus / etc
@@ -1851,7 +1870,7 @@ bool idCommonLocal::ProcessEvent( const sysEvent_t* event )
 						return true;
 					}
 					
-					console->Close();
+
 					Printf( "Process Event: start menu should start as menu is not active!\n" );
 					StartMenu();
 					return true;
@@ -1869,6 +1888,7 @@ bool idCommonLocal::ProcessEvent( const sysEvent_t* event )
 					Printf( "Process Event: since menu is active, we shall close it!\n" );
 					game->shell_menu_ClosePause();
 				}
+				*/
 			}
 		}
 	}
@@ -1938,6 +1958,19 @@ idCommonLocal::FocusInputOnMenu
 void idCommonLocal::FocusInputOnMenu( bool focus )
 {
 	inputIsFocusedOnMenu = focus;
+}
+
+/*
+========================
+idCommonLocal::StopPlayingDemo
+========================
+*/
+void idCommonLocal::StopPlayingDemo() {
+	if( ReadDemo() == NULL ) {
+		return;
+	}
+
+	UnloadMap();
 }
 
 /*

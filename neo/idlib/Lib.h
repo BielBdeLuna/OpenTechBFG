@@ -62,6 +62,7 @@ public:
 	static class idCommon* 		common;
 	static class idCVarSystem* 	cvarSystem;
 	static class idFileSystem* 	fileSystem;
+	static class blShell*		shell;
 	static int					frameNumber;
 	
 	static void					Init();

@@ -48,6 +48,7 @@ If you have questions concerning this license or the applicable additional terms
 #include "../renderer/ModelManager.h"   // for idRenderModelManager, etc
 #include "../ui/UserInterface.h"        // for idUserInterfaceManager, etc
 #include "../cm/CollisionModel.h"       // for idCollisionModelManager
+#include "../shell/shell.h"				// for blShell
 
 namespace BFG
 {
@@ -197,7 +198,7 @@ public:
 	virtual	void				SetGameCoompleted() = 0;
 	virtual	bool				GetGameCoompleted() = 0;
 
-	virtual bool				shell_IsActive() = 0;
+	//virtual bool				shell_IsActive() = 0;
 	virtual	void				shell_Update() = 0;
 
 	virtual bool				shell_background_IsActive() = 0;
