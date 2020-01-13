@@ -1,12 +1,12 @@
 /*
- * shell_banches.h
+ * branches.h
  *
  *  Created on: 29 12 2019
  *      Author: Biel Bestué de Luna
  */
 
-#ifndef NEO_SHELL_SHELL_BRANCHES_H_
-#define NEO_SHELL_SHELL_BRANCHES_H_
+#ifndef NEO_SHELL_BRANCHES_H_
+#define NEO_SHELL_BRANCHES_H_
 
 #include "../idlib/containers/List.h"
 #include "../idlib/Str.h"
@@ -38,7 +38,7 @@ public:
 	int					GetContainedBranchesNum() { return containedBranches_l.num; }
 	blShellBranch		GetContainedBranch( int index ) { return containedBranches_l[index]; }
 
-  void				SetParentBranch( blShellBranch* parent_ptr ) { ParentBranch = parent_ptr; ParentBranch->SetContainedBranch( *this ); }
+  void				SetParentBranch( blShellBranch &parent_ptr ) { ParentBranch = parent_ptr; ParentBranch->SetContainedBranch( this ); }
 	blShellBranch*		GetParentBranch() { return ParentBranch; }
 
 	void				ToggleHidden() { hidden = !hidden; }
@@ -177,38 +177,6 @@ private:
 	idVec4				TexturePercentages;
 };
 
- /*
-struct InputUiCommandPair {
-	ShellEvent InputEvent;
-	idStr UiCommand;
-};
-
-class blShellBranchInput : blShellBranchFramed {
-public:
-	virtual 			~blShellBranchInput() {};
-	virtual void		Init();
-	virtual void		Shutdown();
-	virtual void		PreProcess();
-	virtual void		RunFrame();
-	virtual void		PostProcess();
-  void        Set_UiCommand( idStr NewUiCommand );
-  void        Del_UiCommand( idStr UnwantedUiCommand );
-
-  void        Set_InputEventPairedWithUiCommand( InputUiCommandPair NewPair, bool exclusive = false );
-  void        Del_InputEvent( ShellEvent UnwantedEv );
-
-private:
-	void				Clear();
-  bool        CheckUiCommand( idStr DistinctUiCommand );
-  void        flag_UiCommand( idStr DistinctUiCommand );
-  void        flag_PairedUiCommands( ShellEvent DistinctInputEvent );
-  idList<idStr>   UiCommands_l;
-  idList<InputUiCommandPair>  pairs_l;
-
-  idList<idStr>   UiCommandsFlagged_l;
-};
-*/
-
 } /* namespace BFG */
 
-#endif /* NEO_SHELL_SHELL_BRANCHES_H_ */
+#endif /* NEO_SHELL_BRANCHES_H_ */

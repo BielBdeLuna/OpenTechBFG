@@ -17,60 +17,104 @@ blShellCommand::Clear
 */
 void blShellCommand::Clear() {
     Name.Clear();
-    ClearState();
+    state = UNPRESSED;
 
-    if( associatedInputEvents_l.Num() > 0 ) {
-        associatedInputEvents_l.DeleteContents( true );
+    if( associatedInputEventsPtr_l.Num() > 0 ) {
+        associatedInputEventsPtr_l.DeleteContents( true );
     }
 
-    associatedInputEvents_l.Clear();
+    associatedInputEventsPtr_l.Clear();
 }
-
 
 /*
 =================
-blShellCommand::ToggleState
-toggles the State from null to 1 and the inverse, just as if State were a boolean,
-but if the State is more than 1 then it toggles it back to 0, but if toggled back again,
-it won't remember the previous higher value and it will set it to 1 as in the first statement.
+blShellCommand::GatherStateAndValue
+TODO work out a slution to gather the relevant input
 =================
 */
-void blShellCommand::ToggleState() {
-    if( State == 0 ) {
-        State = 1;
-    } else {
-        //State is 1 or higher
-        State = 0;
+
+void blShellCommand::GatherStateAndValue() {
+    int newValue = 0;
+
+    // gather the highest of the values for all the given inputs
+    //TODO this needs to be able to accomodate a Focus feature
+    for( int i = 0; i < associatedInputEventsPtr_l.Num(); i++ ) {
+        int val = associatedInputEventsPtr_l[i]->GetValue();
+        if( newValue < val ) {
+            newValue = val;
+        }
     }
+
+    // using the gathered newValue and the old one, now gather the correct state
+    if( newValue == 0 ) {
+        if( state == STOPPED_PRESSING ) {
+          state = UNPRESSED;
+        } else {
+            if( state != UNPRESSED ) {
+                state = STOPPED_PRESSING;
+            }
+        }
+    } else {
+        if( ( state == UNPRESSED ) || ( state == STOPPED_PRESSING ) ) {
+            state = STARTED_PRESSING;
+        } else {
+            if( newValue == value ) {
+                state = PRESSED_VALUE_UNALTERED;
+            } else if( newValue > value ) {
+                state = PRESSED_VALUE_INCREASING;
+            } else {
+                state = PRESSED_VALUE_DECREASING;
+            }
+        }
+    }
+
+    // actually set the reported value as the newValue
+    value = newValue;
+
+}
+
+/*
+=================
+blShellCommand::DelAssociatedInputEventAt
+deletes an element for the associatedInputEventsPtr_l list given an index
+=================
+*/
+void blShellCommand::DelAssociatedInputEventAt( int index ) {
+    if( ( index >= associatedInputEventsPtr_l.Num() ) || ( index < 0 ) ) {
+        common->Error( "blShellCommand::DelAssociatedInputEventAt : Index '%i' is out of bounds from the list of pointers!\n", index );
+    }
+
+    //delete associatedInputEventsPtr_l[index]; //I don't wanna erase whatever this element is pointing to
+    associatedInputEventsPtr_l[index] = NULL;
+    associatedInputEventsPtr_l.RemoveIndex( index );
 }
 
 /*
 =================
 blShellCommand::AssociateInputEvent
-assosiates this new inputEvent to the list if and only if doesn't exist there already
+associates this new inputEvent as a reference into the associatedInputEvents_l
+list if and only if doesn't exist there already and returns it's new index.
 =================
 */
-void blShellCommand::AssociateInputEvent( blInputEvent newInputEvent ) {
-    associatedInputEvents_l.AddUnique( newInputEvent );
+int blShellCommand::AssociateInputEvent( blInputEvent& newInputEvent ) {
+    return associatedInputEventsPtr_l.AddUnique( newInputEvent );
 }
 
 /*
 =================
 blShellCommand::DisassociateInputEvent
-assosiates this new inputEvent to the list if and only if doesn't exist there already
+disassociates the inputEvent from the list given the correct reference if and only if it exists
 =================
 */
-void blShellCommand::DisassociateInputEvent( blInputEvent unwantedInputEvent ) {
-    int index = associatedInputEvents_l.FindIndex( unwantedInputEvent );
+void blShellCommand::DisassociateInputEvent( InputEventRef_s unwantedInputEventReference ) {
+    int index = SearchAssociatedInputEvents( unwantedInputEventReference );
 
     if( index == -1 ) {
-        common->Error( "blShellCommand::AssociateInputEvent : couldn't find this unwantedInputEvent in the list of the '%s' ShellCommand! \n", Name.c_str() );
+        common->Warning( "blShellCommand::AssociateInputEvent : Couldn't find this unwantedInputEvent in the list of the '%s' ShellCommand! \n", Name.c_str() );
         return;
     }
 
-    delete associatedInputEvents_l[index];
-    associatedInputEvents_l[index] = NULL;
-    associatedInputEvents_l.RemoveIndex( index );
+    DelAssociatedInputEventAt( index );
 }
 
 /*
@@ -82,11 +126,27 @@ then it will change the State of the ShellCommand to active.
 =================
 */
 int blShellCommand::ConfrontInputEventAndState( blInputEvent indicatedInputEvent, bool actUpon ) {
-    int index = associatedInputEvents_l.FindIndex( indicatedInputEvent );
+    int index = SearchAssociatedInputEvents( indicatedInputEvent.GetReference() );
     if( ( index != -1 ) && ( State != 0 ) && ( actUpon ) ) {
-        ToggleState();
+        State = indicatedInputEvent.value;
     }
     return index;
+}
+
+/*
+=================
+blShellCommand::SearchAssociatedInputEvents
+confronts the given inputEventReference with all the InputEvents references stored
+in the associatedInputEvents_l list, returns the index if one is found or -1 otherways
+=================
+*/
+int blShellCommand::SearchAssociatedInputEvents( InputEventRef_s inputEventReference ) {
+    for( int i = 0; i < associatedInputEvents_l.Num(); i++ ) {
+        if( associatedInputEventsPtr_l[i].confront( inputEventReference ) ) {
+            return i;
+        }
+    }
+    return -1;
 }
 
 } /* namespace BFG */

@@ -92,7 +92,7 @@ enum
 };
 
 typedef const char * ( *HandleGuiCommand_t )( const char* );
-
+/*
 //this is the simple event
 struct ShellEvent {
 	int					EventType;
@@ -104,7 +104,7 @@ struct ShellEventCommand {
 	ShellEvent ev;
 	idStr				command;
 };
-
+*/
 struct ShellSplashStageContent_t {
 	static idMaterial*		material;
 	float					aspectRatio;	//the aspect ratio of the video, picture, or menu
@@ -185,12 +185,20 @@ public:
 	virtual bool			Event_MainMenu_isOpen() = 0;
 	virtual void			Event_MainMenu_Toggle() = 0;
 
+  /*
   virtual void      Event_SetCommandEvent( idStr commandEvent ) = 0;
   virtual bool      Event_CheckCommandEvent( idStr commandEvent ) = 0;
   virtual void      Event_DeleteCommandEvent( idStr commandEvent ) = 0;
 
   virtual void      Event_SetInputCommandEvent( idStr key, idStr commandEvent ) = 0;
   virtual void      Event_DeleteInputCommandEvent( idStr key ) = 0;
+  */
+
+  virtual void      Event_SetShellCommand( idStr name ) = 0;
+  virtual void      Event_SubShellCommand( idStr name ) = 0;
+
+  virtual void      Event_SetInputEventToShellCommand( idStr givenName, int eventType, int event ) = 0;
+  virtual void      Event_SubInputEventFromShellCommand( idStr givenName, int eventType, int event ) = 0;
 
 	/*
 	virtual void	InitFrontEnd() = 0;

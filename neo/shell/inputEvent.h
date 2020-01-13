@@ -12,36 +12,46 @@
 
 namespace BFG {
 
-class blInputEvent {
+//this is the simple event reerence
+struct InputEventRef_s {
+	const int   eventType;
+	const int   event;
+};
+
+//this is the actual class
+class blInputEvent{
 public:
-    blInputEvent( int newEventType, int newEvent, int newValue );
-    const int   eventType;
-    const int   event;
-    const int   value;
+  blInputEvent( InputEventRef_s newRef );
 
-    //only returns true if both eventtype and event match the proposed input event
-    bool Confront( int indicatedEventType, int indicatedEvent );
+  InputEventRef_s GetReference() { return reference; };
+  bool            Confront( InputEventRef_s indicatedRef );
 
-    bool operator==( const blInputEvent& other );
-    bool operator!=( const blInputEvent& other );
+  int             GetValue() { return value; };
+  void            FindNewValue();
+
+  bool            operator==( const blInputEvent& other );
+  bool            operator!=( const blInputEvent& other );
+
+private:
+    const InputEventRef_s reference;
+    int                   value;
 }
 
-ID_INLINE blInputEvent( int newEventType, int newEvent, int newValue ) {
-  eventType = newEventType;
-  event = newEvent;
-  value = newValue;
+ID_INLINE blInputEvent( InputEventRef_s newRef ) {
+  reference.eventType = newRef.eventType;
+  reference.event = newRef.event;
 }
 
-ID_INLINE bool blInputEvent::Confront( int indicatedEventType, int indicatedEvent ) {
-  return( ( eventType == indicatedEventType ) && ( event == indicatedEvent ) );
+ID_INLINE bool blInputEvent::Confront( InputEventRef_s indicatedRef ) {
+  return( ( reference.eventType == indicatedRef.eventType ) && ( reference.event == indicatedRef.event ) );
 }
 
 ID_INLINE bool blInputEvent::operator==( const blInputEvent& other ) {
-  return Confront( other.eventType, other.event );
+  return Confront( other.GetReference().eventType, other.GetReference().event );
 }
 
 ID_INLINE bool blInputEvent::operator!=( const blInputEvent& other ) {
-  return !Confront( other.eventType, other.event );
+  return !(Confront( other.GetReference().eventType, other.GetReference().event ));
 }
 
 } /* namespace BFG */

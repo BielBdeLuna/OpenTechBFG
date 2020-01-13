@@ -130,6 +130,12 @@ public:
     virtual void    Event_SetInputCommandEvent( idStr key, idStr commandEvent );
     virtual void    Event_DeleteInputCommandEvent( idStr key );
 
+    virtual void    Event_SetShellCommand( idStr name );
+    virtual void    Event_SubShellCommand( idStr name );
+
+    virtual void    Event_SetInputEventToShellCommand( idStr givenName, int eventType, int event );
+    virtual void    Event_SubInputEventFromShellCommand( idStr givenName, int eventType, int event );
+
 		//virtual void			InitShellManager();
 		/*
 		virtual void			InitFrontEnd();
@@ -214,33 +220,23 @@ private:
     int                       ShellCommand_AddShellCommand( idStr name );
     void                      ShellCommand_RemoveShellCommand( idStr name );
     void                      ShellCommand_GetState( idStr name );
-    void                      ShellCommand_AssociateInputEvent( idStr name, blInputEvent newInputEvent );
-    void                      ShellCommand_DissociateInputEvent( idStr name, blInputEvent unwantedInputEvent );
-    void                      ShellCommand_SyncClear();
-
-    void                      ShellCommand_SwitchOn_GivenIndex( int index );
-    void                      ShellCommand_SwitchOn_GivenInputEvent( blInputEvent indicatedInputEvent );
-    void                      ShellCommand_SwitchOn_GivenName( idStr name );
+    void                      ShellCommand_AssociateInputEvent( idStr name, InputEventRef_s newIEreference );
+    void                      ShellCommand_DissociateInputEvent( idStr name, InputEventRef_s unwantedIEreerence );
+    void                      ShellCommand_Sync();
 
     idList<blShellCommand>    ShellCommands_l;
 
-    //the RelevantInputEvents List is a InputEvent centric list of all InputEvents important to the shell
-
-    // index stuff
-    void                      ShellCommand_AddRelevantIndex( blInputEvent indicatedInputEvent, int newIndex )
-    void                      ShellCommand_AddAllRelevantIndexes( blInputEvent indicatedInputEvent );
-
     //input events stuf
-    int                       ShellCommand_SearchRelevantInputEvent( blInputEvent indicatedInputEvent );
+    int                       ShellInputEvents_SearchInputEvent( InputEventRef_s indicatedIEreference );
+    void                      ShellInputEvents_PurgeInputEvent( blInputEvent* GivenInputEvent, int indexSkip );
 
-    void                      ShellCommand_AddRelevantInputEvent( blInputEvent newInputEvent );
-    bool                      ShellCommand_TestInputEventIrelevancy( blInputEvent indicatedInputEvent, int indexSkip == -1 );
-    void                      ShellCommand_SubRelevantInputEvent( blInputEvent unwantedInputEvent );
+    int                       ShellInputEvents_AddInputEvent( blInputEvent newInputEvent );
+    void                      ShellInputEvents_SubInputEvent( InputEventRef_s unwantedIEreference );
+    void                      ShellInputEvents_Synch();
 
-    //general stuff
-    void                      ShellCommand_RebuildRelevantInputEventList();
+    idList<blInputEvent>      ShellInputEvents_l;
 
-    idList<InputEventsAndIndexes>      RelevantInputEvents_l;
+    //idList<InputEventsAndIndexes>      RelevantInputEvents_l;
     //idList<InputEvent*>       RelevantInputEvents_l;
 
     //InputEvent Stuff

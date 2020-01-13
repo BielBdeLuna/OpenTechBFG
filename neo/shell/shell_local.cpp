@@ -26,8 +26,19 @@ int blShellAsync::Run() {
 		shell->Asynch_update( sev );
 		*/
 
-		//update the list of branches and go for every active branch
+
+
+        //SHELL BASE
+
+        // find the current value for every InputEvent in the ShellInputEvents_l list
+        shell->ShellInputEvents_Synch();
+
+		// gather all the status and values of every command given the new values of the inputEvents
+        shell->ShellCommand_Sync();
+
+		// run branches given the new values of the ShellCommands
 		shell->AsyncFrame_RunBranchLists();
+
 	}
 	return 0;
 }
@@ -1217,86 +1228,6 @@ bool blShellLocal::Check_SystemEvents( idList<ShellEvent> PossibleSystemEvents_l
 
 }
 
-//shell events
-
-/*
-==============
-blShellLocal::Event_LoadGame
-==============
-*/
-void Event_LoadGame( idStr saveFileName ) {
-	cmdSystem->AppendCommandText( va( "loadgame %s\n", saveFileName.c_str() ) );
-}
-
-/*
-==============
-blShellLocal::Event_SaveGame
-==============
-*/
-void blShellLocal::Event_SaveGame( idStr saveGameName ) {
-	//add a threaded menu icon in order to inform there is saving going on
-	cmdSystem->AppendCommandText( va( "savegame %s\n", saveGameName.c_str() ) );
-}
-
-/*
-==============
-blShellLocal::Event_QuitGame
-==============
-*/
-void blShellLocal::Event_QuitGame() {
-	cmdSystem->AppendCommandText( "quit" );
-}
-
-/*
-==============
-blShellLocal::Event_QuitToMainMenu
-==============
-*/
-void blShellLocal::Event_QuitToMainMenu() {
-	;
-}
-
-/*
-==============
-blShellLocal::Event_ResumeGame
-==============
-*/
-void blShellLocal::Event_ResumeGame() {
-	;
-}
-
-//session stuff
-
-/*
-==============
-blShellLocal::Event_Get_SessionState
-Gather the state of the session in order to operate in menus and other shell elements given it's state
-==============
-*/
-int blShellLocal::Event_Get_SessionState() {
-
-
-	idSession::sessionState_t sessionState = session->GetState(); //enum
-
-
-	return sessionState; //enum to int
-}
-
-/*
-==============
-blShellLocal::Event_Set_SessionState
-Set a state in the session, set externally off the engine
-==============
-*/
-void blShellLocal::Event_Set_SessionState( int newState ) {
-	//check if newState is within bounds of the sessionState_t enum
-	if( ( newState > idSession::MAX_STATES ) || ( newState < idSession::PRESS_START ) ) {
-		common->Error( "blShellLocal::Event_Set_SessionState : Session doesn't contain state number '%i' in the list.\n", newState );
-	} else {
-		; //TODO make it so that the session becomes that state
-	}
-}
-
 //shell innards
 
 /*
@@ -1481,355 +1412,14 @@ void blShellLocal::RedrawActiveGUIs() {
 }
 
 /*******************************************************************************
-                                SHELL COMMANDS
-*******************************************************************************/
-
-/*
-=================
-blShellLocal::ShellCommand_AddShellCommand
-adds a new ShellCommand to the list and returns it's new index.
-=================
-*/
-int blShellLocal::ShellCommand_AddShellCommand( idStr name ) {
-    blShellCommand sh = new blShellCommand( name );
-    return ShellCommands_l.Append( sh );
-
-}
-
-/*
-=================
-blShellLocal::ShellCommand_RemoveShellCommand
-removes a ShellCommand from the ShellCommands_l list if it exists.
-=================
-*/
-void blShellLocal::ShellCommand_RemoveShellCommand( idStr name ) {
-    int index ShellCommand_SearchShellCommand( name );
-
-    if( index == -1 ) {
-        common->Warning( "blShellLocal::ShellCommand_SearchShellCommand : couldn't find ShellCommand '%s' in the list!\n", name.c_str() );
-        return;
-    }
-
-    delete ShellCommands_l[index];
-    ShellCommands_l[index] = NULL;
-    ShellCommands_l.RemoveIndex( index );
-
-    //let's keep it efficient by rebuilding the relevantInputList without the influence of that removed ShellCommand
-    ShellCommand_RebuildRelevantInputEventList();
-}
-
-/*
-=================
-blShellLocal::ShellCommand_SearchShellCommand
-search the ShellCommand by that name in the ShellCommands_l list or return -1
-=================
-*/
-int blShellLocal::ShellCommand_SearchShellCommand( idStr name ) {
-    for( int i = 0; i < ShellCommands_l.Num(); i++ ) {
-        if( ShellCommands_l[i].GetName().Icmp( name ) ) {
-            return i;
-        }
-    }
-    //common->Warning( "blShellLocal::ShellCommand_SearchShellCommand : couldn't find ShellCommand '%s' in the list!\n", name.c_str() );
-    return -1;
-}
-
-/*
-=================
-blShellLocal::ShellCommand_GetState
-gets the state of that CommandState if it exists in the list at all
-=================
-*/
-int blShellLocal::ShellCommand_GetState( idStr name ) {
-
-    int index = ShellCommand_SearchShellCommand( name );
-
-    if( index == -1 ) {
-        common->Error( "blShellLocal::ShellCommandGetState : ShellCommand '%s' doesn't exist in the list!\n", name.c_str() );
-    }
-
-    return ShellCommands_l[index].GetState();
-}
-
-/*
-=================
-blShellLocal::ShellCommand_AssociateInputEvent
-associates a newInputEvent to the list if the ShellCommand exists, and it doesn't have it already,
-if the ShellCommand doesn't exist, then it will add it to the list with the newInputEvent in place
-=================
-*/
-void blShellLocal::ShellCommand_AssociateInputEvent( idStr name, InputEvent newInputEvent ) {
-    int index = ShellCommand_SearchShellCommand( name );
-
-    if( index == -1 ) {
-        // at this stage there isn't any ShellCommand with that name add a new one
-        index = ShellCommand_AddShellCommand( name );
-    }
-
-    ShellCommands_l[index].AssociateInputEvent( newInputEvent );
-    ShellCommand_AddRelevantInputEvent( newInputEvent );
-}
-
-/*
-=================
-blShellLocal::ShellCommand_DisassociateInputEvent
-disassociates the unwantedInputEvent rom the ShellCommand in the ShellCommands_l list if it exists
-=================
-*/
-void blShellLocal::ShellCommand_DisassociateInputEvent( idStr name, InputEvent unwantedInputEvent ) {
-    int index = ShellCommand_SearchShellCommand( name );
-
-    if( index == -1 ) {
-        common->Warning( "blShellLocal::ShellCommand_DisassociateInputEvent : couldn't find ShellCommand '%s' in the list!\n", name.c_str() );
-        return;
-    }
-
-    ShellCommands_l[index].DisassociateInputEvent( unwantedInputEvent );
-
-    // guess then if any of the ShellCommands in ShellCommands_l still has this unwantedInputEvent associated
-    if( ShellCommand_TestInputEventIrelevancy( unwantedInputEvent, index ) ) {
-        ShellCommand_SubRelevantInputEvent( unwantedInputEvent );
-    }
-}
-
-/*
-=================
-blShellLocal::ShellCommand_SyncClear
-clears all the states at the sync point
-=================
-*/
-void blShellLocal::ShellCommand_SyncClear() {
-    for( int i = 0; i < ShellCommands_l.Num(); i++ ) {
-        ShellCommands_l[i].ClearState();
-    }
-
-}
-
-/*
-=================
-blShellLocal::ShellCommand_SwitchOn_GivenIndex
-given a specific Index, toggle the ShellCommand at that index in the ShellCommands_l list
-only if it's not toggled already
-=================
-*/
-void blShellLocal::ShellCommand_SwitchOn_GivenIndex( int index ) {
-    if( ( index < 0 ) || ( index > ShellCommands_l.Num() ) ) {
-            common->Warning( "blShellLocal::ShellCommand_SwitchOn_GivenIndex : index '%i' is out of bounds off the Shell Commands list!\n", index );
-    }
-    if( ShellCommands_l[index].GetState() == 0 ) {
-        ShellCommands_l[index].ToggleState();
-    }
-}
-
-/*
-=================
-blShellLocal::ShellCommand_SwitchOn_GivenInputEvent
-ater finding in the ShellCommands_l list the ShellCommands that shares the same
-InputEvent like the indicatedInputEvent, it toggles it
-=================
-*/
-void blShellLocal::ShellCommand_SwitchOn_GivenInputEvent( InputEvent indicatedInputEvent ) {
-    bool toggledSomething = false;
-
-    for( int index = 0; index < ShellCommands_l.Num(); index++ ) {
-        int n = ShellCommands_l[index].GetAssociatedInputEventsNum();
-
-        //only toggle if there is any InputEvents associated to begin with
-        if( n > 1 ) {
-            for( int i = 0; i < n; i++ ) {
-                if( ShellCommands_l[index].GetAssociatedInputEventAt( i ) == indicatedInputEvent ) {
-                    ShellCommand_SwitchOn_GivenIndex( index );
-                    toggledSomething = true;
-                }
-            }
-        } else if( n == 1 ) {
-            if( ShellCommands_l[index].GetAssociatedInputEventAt( i ) == indicatedInputEvent ) {
-                ShellCommand_SwitchOn_GivenIndex( index );
-                toggledSomething = true;
-            }
-        }
-    }
-
-    if( !toggledSomething ) {
-        common->Warning( "blShellLocal::ShellCommand_SwitchOn_GivenInputEvent : the indicatedInputEvent doesn't coincide with any of the InputEvents in the ShellCommands_l list!\n" );
-    }
-}
-
-/*
-=================
-blShellLocal::ShellCommand_SwitchOn_GivenName
-given a specific Name, toggle the ShellCommand with that name in the ShellCommands_l list
-only if it's not toggled already
-=================
-*/
-void blShellLocal::ShellCommand_SwitchOn_GivenName( idStr name ) {
-    for( int index = 0; index < ShellCommands_l.Num(); index++ ) {
-        if( ShellCommands_l[index].GetName().Icmp( name ) ) {
-            ShellCommand_SwitchOn_GivenIndex( index );
-            return;
-        }
-    }
-    common->Warning( "blShellLocal::ShellCommand_SwitchOn_GivenName : couldn't find ShellCommand '%s' in the list!\n", name.c_str() );
-}
-
-
-/*
-=================
-blShellLocal::ShellCommand_SearchRelevantInputEvent
-returns the index the indicatedInputEvent is in, or -1 if none is found
-=================
-*/
-int blShellLocal::ShellCommand_SearchRelevantInputEvent( InputEvent indicatedInputEvent ) {
-    for( int i = 0; i < RelevantInputEvents_l.Num(); i++ ) {
-        //make sure it is the same InputEvent
-        if( RelevantInputEvents_l[i].InputEvent == indicatedInputEvent ) {
-            return i;
-        }
-    }
-    return -1;
-}
-
-/*
-=================
-blShellLocal::ShellCommand_AddRelevantIndex
-given a indicatedInputEvent, add a newIndex to the RelevantInputEvents_l list
-=================
-*/
-void blShellLocal::ShellCommand_AddRelevantIndex( InputEvent indicatedInputEvent, int newIndex ) {
-    int i = ShellCommand_SearchRelevantInputEvent( InputEvent indicatedInputEvent );
-
-    if( i == -1 ) {
-        common->Error( "blShellLocal::ShellCommand_AddRelevantIndex : RelevantInputEvents_l list doesn't have the indicatedInputEvent!\n" );
-        return; // irrelevant if we error it out
-    }
-
-    // add it if we don't have it already listed
-    RelevantInputEvents_l[i].indexes.addUnique( newIndex );
-
-}
-
-/*
-=================
-blShellLocal::ShellCommand_AddAllRelevantIndexes
-given a indicatedInputEvent, search all the relevant indexes in the ShellCommands_l list
-=================
-*/
-void blShellLocal::ShellCommand_AddAllRelevantIndexes( InputEvent indicatedInputEvent ) {
-    for( index = 0; index < ShellCommands_l.Num(); index++ ) {
-        int n = ShellCommands_l[index].GetAssociatedInputEventsNum();
-
-        //in case there are associated InputEvents to that specific ShellEvent
-        if( n > 0 ) {
-            if( n == 1 ) {
-                // if it is just one associated InputEvent
-                if( ShellCommands_l[index].GetAssociatedInputEventAt( 0 ) == indicatedInputEvent ) {
-                    ShellCommand_AddRelevantIndex( indicatedInputEvent, index );
-                }
-            } else {
-                // if it is more than just one
-                for( int i = 0; i < n; i++ ) {
-                    if( ShellCommands_l[index].GetAssociatedInputEventAt( i ) == indicatedInputEvent ) {
-                        ShellCommand_AddRelevantIndex( indicatedInputEvent, index );
-                    }
-                }
-            }
-        }
-        //in another case the ShellCommand could have no associated InputEvents in that case we don't do a thing
-    }
-}
-
-
-/*
-=================
-blShellLocal::ShellCommand_AddRelevantInputEvent
-adds a reference to the newInputEvent from the list
-=================
-*/
-void blShellLocal::ShellCommand_AddRelevantInputEvent( InputEvent newInputEvent ) {
-    if( ShellCommand_SearchRelevantInputEvent( newInputEvent ) == -1 ) {
-
-        InputEventsAndIndexes newIe;
-        newIe.InputEventPtr = &newInputEvent; // is this correct?
-        newIe.indexes.Clear();
-
-        RelevantInputEvents_l.AddUnique( newIe );
-
-        ShellCommand_AddAllRelevantIndexes( newInputEvent );
-    }
-
-    //else we already have it so we don't need to do a thing
-}
-
-/*
-=================
-blShellLocal::ShellCommand_TestInputEventIrelevancy
-test if any of the ShellCommands in ShellCommands_l has this indicatedInputEvent associated,
-we can skip one of the indexes in the list so we don't make an ineficient check
-=================
-*/
-bool blShellLocal::ShellCommand_TestInputEventIrelevancy( InputEvent indicatedInputEvent, int indexSkip == -1 ) {
-    for( int index = 0; index < ShellCommands_l.Num(); index++ ) {
-        if( index == indexSkip ) {
-            continue;
-        }
-
-        if( ShellCommands_l[index].ConfrontInputEventAndState( indicatedInputEvent, false ) != -1 ) {
-            return true;
-        }
-    }
-
-    return false
-}
-
-/*
-=================
-blShellLocal::ShellCommand_SubRelevantInputEvent
-substracts the reference to the unwantedInputEvent from the list
-=================
-*/
-void blShellLocal::ShellCommand_SubRelevantInputEvent( InputEvent unwantedInputEvent ) {
-    int Index = RelevantInputEvents_l.FindIndex( unwantedInputEvent );
-
-    if( index == -1 ) {
-        common->Warning( "blShellLocal::ShellCommand_SubRelevantInputEvent : couldn't find the unwantedInputEvent in the list!\n" );
-        return;
-    }
-
-    delete RelevantInputEvents_l[index];
-    RelevantInputEvents_l[index] = NULL;
-    RelevantInputEvents_l.RemoveIndex( index );
-}
-
-/*
-=================
-blShellLocal::ShellCommand_RebuildRelevantInputEventList
-rebuilds the RelevantInputEvents_l list from scratch
-=================
-*/
-void blShellLocal::ShellCommand_RebuildRelevantInputEventList() {
-    for( index = 0; index < ShellCommands_l.Num(); index++ ) {
-        int n = ShellCommands_l[index].GetAssociatedInputEventsNum();
-
-        if( n > 1 ) {
-            for( int i = 0; i < n; i++ ) {
-                ShellCommand_AddRelevantInputEvent( ShellCommands_l[index].GetAssociatedInputEventAt( i ) );
-            }
-        } else if( n == 1 ) {
-            ShellCommand_AddRelevantInputEvent( ShellCommands_l[index].GetAssociatedInputEventAt( 0 ) );
-        }
-        //in another case the ShellCommand could have no associated InputEvents in that case we don't do a thing
-    }
-}
-
-/*******************************************************************************
 							SHELL INPUT EVENTS
 *******************************************************************************/
 
 /*
 =================
 blShellLocal::ShellInputEvent_TestInputEvents
-will test any new Input Events against the RelevantInputEvents_l list and with this,
-it toggle the respectful ShellCommands rom the ShellCommands_l list if needed
+will test any new InputEvents against the RelevantInputEvents_l list and with this,
+it will set the value of the respectful ShellCommands from the ShellCommands_l list if needed
 =================
 */
 void blShellLocal::ShellInputEvent_TestInputEvents() {
@@ -1840,9 +1430,9 @@ void blShellLocal::ShellInputEvent_TestInputEvents() {
 	Sys_GetEvent();
 
     for( index = 0; index < RelevantInputEvents_l.Num(); index++ ) {
-        InputEvent ie = RelevantInputEvents_l[i];
+        InputEventsAndIndexes ie = RelevantInputEvents_l[i];
 
-	    if( ie.EventType == SE_KEY ) {
+	    if( *(ie.InputEventPtr)->EventType == SE_KEY ) {
             int numKeyEvents = Sys_PollKeyboardInputEvents();
             if( numKeyEvents > 0 ) {
                 for( int i = 0; i < numKeyEvents; i++ )	{
@@ -1850,33 +1440,30 @@ void blShellLocal::ShellInputEvent_TestInputEvents() {
 					bool state;
 
 					if( Sys_ReturnKeyboardInputEvent( i, key, state ) ) {
-						if( ( key == ie.Event ) && state ) {
-							//TODO
-							//TODO escapeEvent = true;
-							//TODO
-							break;
+						if( ( key == *(ie.InputEventPtr)->Event ) && state ) {
+						    ShellCommand_SwitchOn_AllRelevantInputEventIndexes( index, value ); //'value' is bool ported to int
+							break; //TODO should it break?
 						}
 					}
 				}
 
 				Sys_EndKeyboardInputEvents();
             }
-	    } else if( ie.EventType == SE_MOUSE ) {
+	    } else if( *(ie.InputEventPtr)->EventType == SE_MOUSE ) {
 	        int	mouseEvents[MAX_MOUSE_EVENTS][2];
 			int numMouseEvents = Sys_PollMouseInputEvents( mouseEvents );
 			if( numMouseEvents > 0 ) {
 				for( int i = 0; i < numMouseEvents; i++ ) {
 					int action = mouseEvents[i][0];
 					int value = mouseEvents[i][1];
-					if( action == ie.Event ) {
-						//TODO
-						//TODO escapeEvent = true;
-						//TODO
-						break;
+
+					if( action == *(ie.InputEventPtr)->Event ) {
+						ShellCommand_SwitchOn_AllRelevantInputEventIndexes( index, value );
+						break; //TODO should it break?
 					}
 				}
 			}
-	    } else if( ie.EventType == SE_JOYSTICK ) {
+	    } else if( *(ie.InputEventPtr)->EventType == SE_JOYSTICK ) {
 			int numJoystickEvents = Sys_PollJoystickInputEvents( 0 );
 			if( numJoystickEvents > 0 ) {
 				for( int i = 0; i < numJoystickEvents; i++ ) {
@@ -1884,11 +1471,9 @@ void blShellLocal::ShellInputEvent_TestInputEvents() {
 					int value;
 
 					if( Sys_ReturnJoystickInputEvent( i, action, value ) ) {
-						if( ( action == ie.Event ) && ( value != 0 ) ) {
-							//TODO
-							//TODO escapeEvent = true;
-							//TODO
-							break;
+						if( ( action == *(ie.InputEventPtr)->Event ) && ( value != 0 ) ) {
+							ShellCommand_SwitchOn_AllRelevantInputEventIndexes( index, value );
+							break; //TODO should it break?
 						}
 					}
 				}

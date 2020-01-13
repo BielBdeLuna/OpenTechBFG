@@ -34,37 +34,40 @@ enum
 
 };
 
-//this is the simple event
-struct InputEvent {
-	int     EventType;
-	int	    Event;
-};
-
+enum {
+  UNPRESSED
+  STARTED_PRESSING
+  PRESSED_VALUE_UNALTERED
+  PRESSED_VALUE_INCREASING
+  PRESSED_VALUE_DECREASING
+  STOPPED_PRESSING
+}
 class blShellCommand {
                 blShellCommand( idStr _name ) { Clear(); Name = _name; };
                 ~blShellCommand() { Clear(); };
 public:
   idStr         GetName() { return Name; };
 
-  void          SetState( int newState ) { State = newState; };
-  void          ToggleState();               // Treats State as a boolean
+  void          GatherStateAndValue();
+
   int           GetState() { return State; };
+  int           GetValue() { return value; };
 
-  void          AssociateInputEvent( blInputEvent newInputEvent );
-  void          DisassociateInputEvent( blInputEvent unwantedInputEvent );
-  int           GetAssociatedInputEventsNum() { return associatedInputEvents_l.Num(); };
-  blInputEvent  GetAssociatedInputEventAt( index i ) { return associatedInputEvents_l[i]; };
-
-  int           ConfrontInputEventAndState( blInputEvent indicatedInputEvent, bool actUpon );
-  void          ClearState() { State = 0; };
+  int           AssociateInputEvent( blInputEvent& newInputEvent );
+  void          DisassociateInputEvent( InputEventRef_s unwantedInputEventReference );
+  int           GetAssociatedInputEventsNum() { return associatedInputEventsPtr_l.Num(); };
+  blInputEvent* GetAssociatedInputEventAt( int index ) { return associatedInputEventsPtr_l[index]; };
+  void          DelAssociatedInputEventAt( int index );
+  int           SearchAssociatedInputEvents( InputEventRef_s indicatedInputEventRef );
 
 private:
   void          Clear();
 
   idStr         Name;
-  int           State;
+  int           value;
+  int           state;
 
-  idList<blInputEvent> associatedInputEvents_l;
+  idList<blInputEvent*> associatedInputEventsPtr_l;
 }
 
 } /* namespace BFG */
