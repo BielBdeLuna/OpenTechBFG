@@ -185,17 +185,10 @@ public:
 	virtual bool			Event_MainMenu_isOpen() = 0;
 	virtual void			Event_MainMenu_Toggle() = 0;
 
-  /*
-  virtual void      Event_SetCommandEvent( idStr commandEvent ) = 0;
-  virtual bool      Event_CheckCommandEvent( idStr commandEvent ) = 0;
-  virtual void      Event_DeleteCommandEvent( idStr commandEvent ) = 0;
-
-  virtual void      Event_SetInputCommandEvent( idStr key, idStr commandEvent ) = 0;
-  virtual void      Event_DeleteInputCommandEvent( idStr key ) = 0;
-  */
-
-  virtual void      Event_SetShellCommand( idStr name ) = 0;
-  virtual void      Event_SubShellCommand( idStr name ) = 0;
+  virtual void      Event_Set_ShellCommand( idStr name ) = 0;
+  virtual void      Event_Sub_ShellCommand( idStr name ) = 0;
+  virtual int       Event_Get_ShellCommand_State( idStr name ) = 0;
+  virtual int       Event_Get_ShellCommand_Value( idStr name ) = 0;
 
   virtual void      Event_SetInputEventToShellCommand( idStr givenName, int eventType, int event ) = 0;
   virtual void      Event_SubInputEventFromShellCommand( idStr givenName, int eventType, int event ) = 0;

@@ -79,6 +79,25 @@ int blShellLocal::Event_Get_SessionState() {
 
 /*
 ==============
+blShellLocal::Event_MainMenu_Toggle
+==============
+*/
+int blShellLocal::Event_MainMenu_Toggle() {
+    /*
+    idSession::sessionState_t sessionState = session->GetState()
+    if( sessionState != idSession::IDLE ) {
+        session->MoveToMainMenu();
+    } else {
+
+    }
+    //then let's start the content
+    */
+    ;
+}
+
+
+/*
+==============
 blShellLocal::Event_Set_SessionState
 Set a state in the session, set externally off the engine
 ==============
@@ -88,7 +107,7 @@ void blShellLocal::Event_Set_SessionState( int newState ) {
 	if( ( newState > idSession::MAX_STATES ) || ( newState < idSession::PRESS_START ) ) {
 		common->Error( "blShellLocal::Event_Set_SessionState : Session doesn't contain state number '%i' in the list.\n", newState );
 	} else {
-		; //TODO make it so that the session becomes that state
+		session->SetState( newState );
 	}
 }
 
@@ -96,22 +115,47 @@ void blShellLocal::Event_Set_SessionState( int newState ) {
 
 /*
 =================
-blShellLocal::Event_SetShellCommand
+blShellLocal::Event_Set_ShellCommand
 add a new ShellCommand with a name
 =================
 */
-void blShellLocal::Event_SetShellCommand( idStr name ) {
+void blShellLocal::Event_Set_ShellCommand( idStr name ) {
     ShellCommand_AddShellCommand( name );
 }
 
 /*
 =================
-blShellLocal::Event_SubShellCommand
+blShellLocal::Event_Sub_ShellCommand
 delete a new ShellCommand given a name
 =================
 */
-void blShellLocal::Event_SubShellCommand( idStr name ) {
+void blShellLocal::Event_Sub_ShellCommand( idStr name ) {
     ShellCommand_RemoveShellCommand( name );
+}
+
+/*
+=================
+blShellLocal::Event_Get_ShellCommand_State
+returns the state of a given ShellCommand or errors out
+=================
+*/
+int blShellLocal::Event_Get_ShellCommand_State( idStr name ) {
+    int state = ShellCommand_GetState( name );
+    if( state == -1 ) {
+        common->Error( "blShellLocal::Event_Get_ShellCommand_State : ShellCommand '%s' doesn't exist in the list!\n", name.c_str() );
+    }
+    return state;
+}
+
+/*
+=================
+blShellLocal::Event_Get_ShellCommand_value
+returns the state of a given ShellCommand
+CAUTION: the error is not well beheaved, it will error out in the ShellCommand_GetValue function
+=================
+*/
+int blShellLocal::Event_Get_ShellCommand_value( idStr name ) {
+    return ShellCommand_GetValue( name );
 }
 
 /*

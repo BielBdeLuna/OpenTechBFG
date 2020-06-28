@@ -20,7 +20,7 @@
 
 #include "../shell/inputEvent.h"
 #include "../shell/shell_command.h"
-#include "../shell/shell_branches.h"
+#include "../shell/branches.h"
 
 #ifndef NEO_SHELL_SHELL_LOCAL_H_
 #define NEO_SHELL_SHELL_LOCAL_H_
@@ -122,17 +122,13 @@ public:
 		virtual bool		Event_MainMenu_isOpen() { return MainMenu_isOpen; }
 		virtual void		Event_MainMenu_Toggle();
 
-    //input stuff
-    virtual void    Event_SetCommandEvent( idStr commandEvent );
-    virtual bool    Event_CheckCommandEvent( idStr commandEvent );
-    virtual void    Event_DeleteCommandEvent( idStr commandEvent );
+    //shell command stuff
+    virtual void    Event_Set_ShellCommand( idStr name );
+    virtual void    Event_Sub_ShellCommand( idStr name );
+    virtual int     Event_Get_ShellCommand_State( idStr name );
+    virtual int     Event_Get_ShellCommand_Value( idStr name );
 
-    virtual void    Event_SetInputCommandEvent( idStr key, idStr commandEvent );
-    virtual void    Event_DeleteInputCommandEvent( idStr key );
-
-    virtual void    Event_SetShellCommand( idStr name );
-    virtual void    Event_SubShellCommand( idStr name );
-
+    //input event stuff
     virtual void    Event_SetInputEventToShellCommand( idStr givenName, int eventType, int event );
     virtual void    Event_SubInputEventFromShellCommand( idStr givenName, int eventType, int event );
 

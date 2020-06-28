@@ -61,6 +61,12 @@ private:
 
 };
 
+/*
+=================
+blShellBranchFramed
+the branch keeps working on a precess on a per frame basis
+=================
+*/
 class blShellBranchFramed : blShellBranch {
 public:
 	virtual 			~blShellBranchFramed() {};
@@ -82,6 +88,12 @@ enum BranchProcess_e
 	NUM_BRANCH_PROCESS
 };
 
+/*
+=================
+blShellBranchProcessed
+the branch keeps working on a precess independently of the ammount of frames it takes to finish the process
+=================
+*/
 class blShellBranchProcessed : blShellBranch {
 public:
 	virtual 			~blShellBranchProcessed() {};
@@ -89,13 +101,35 @@ public:
 	virtual void		Shutdown() = 0;
 	virtual	int			Style = BranchStyle_e::BRANCH_PROCESSED;
 	virtual int			ProcessStatus = BranchProcess_e::BRANCH_PROCESS_NOT_STARTED;
-	virtual void		StartProcess( idList<blShellBranch>* List ) = 0; //run for the duration of the process the thing that needs to be processed
+	virtual void		StartProcess() = 0; //run for the duration of the process the thing that needs to be processed
 	virtual void		PreProcess() = 0; //not run every frame but once before the first frame. Prep things up when the process is in pause before it starts to function
 	virtual void		PostProcess() = 0; //run after the last frame this could serve as enabling a next state
 
 private:
-  idList<blShellBranch>* Branches_l_ptr;
+  //idList<blShellBranch>* Branches_l_ptr;
 };
+
+/*
+*/
+class blShellBranchThreaded : blShellBranchProcessed {
+public:
+  virtual       ~blShellBranchThreaded() {};
+  virtual	void		Init() = 0;
+	virtual void		Shutdown() = 0;
+	virtual	int			Style = BranchStyle_e::BRANCH_PROCESSED;
+	virtual int			ProcessStatus = BranchProcess_e::BRANCH_PROCESS_NOT_STARTED;
+	virtual void		StartProcess() = 0;
+	virtual void		PreProcess() = 0;
+  virtual void		PostProcess() = 0;
+
+  int             StartThreadedProcess();
+  void            KillThreadedProcess();
+
+private:
+  int             procInt;
+  void            TestFunctionSanity();
+  function        _f;
+}
 
 /*
 class blShellBranchEscapeInputs : blShellBranchFramed {
@@ -115,6 +149,12 @@ private:
 };
 */
 
+/*
+=================
+blShellBranchFramed
+this branch keeps working on a listed element basis from a internal list
+=================
+*/
 class blShellBranchLineal : blShellBranchFramed {
 public:
 	virtual     ~blShellBranchLineal() {};
@@ -133,6 +173,13 @@ private:
 	idList<ShellSplashStageContent_t> splashContent_l;
 };
 
+
+ /*
+=================
+blShellBranchGui
+this branch displays GUIs
+=================
+*/
 class blShellBranchGui : blShellBranchFramed {
 public:
 	virtual 			~blShellBranchGui() {};
@@ -156,6 +203,12 @@ private:
 	//idUserInterface *	guiTest;
 };
 
+ /*
+=================
+blShellBranchFullScreenMaterial
+this branch displays a single material full screen
+=================
+*/
 class blShellBranchFullScreenMaterial : blShellBranchFramed {
 public:
 	virtual 			~blShellBranchFullScreenMaterial() {};

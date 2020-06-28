@@ -83,7 +83,27 @@ int blShellLocal::ShellCommand_GetState( idStr name ) {
     int index = ShellCommand_SearchShellCommand( name );
 
     if( index == -1 ) {
-        common->Error( "blShellLocal::ShellCommandGetState : ShellCommand '%s' doesn't exist in the list!\n", name.c_str() );
+        return -1; // let the "event" function handle the error announement
+        //common->Error( "blShellLocal::ShellCommand_GetState : ShellCommand '%s' doesn't exist in the list!\n", name.c_str() );
+    }
+
+    return ShellCommands_l[index].GetState();
+}
+
+/*
+=================
+blShellLocal::ShellCommand_GetValue
+gets the value of that CommandState if it exists in the list at all
+=================
+*/
+int blShellLocal::ShellCommand_GetValue( idStr name ) {
+
+    int index = ShellCommand_SearchShellCommand( name );
+
+    if( index == -1 ) {
+        // unfortunately there is no "worng" value to pass to the "event" function
+        // so when the shellCommand isn't found the error will not be well beheaved
+        common->Error( "blShellLocal::ShellCommand_GetValue : ShellCommand '%s' doesn't exist in the list!\n", name.c_str() );
     }
 
     return ShellCommands_l[index].GetState();
