@@ -2335,7 +2335,7 @@ void idRenderProgManager::LoadGLSLProgram( const int programIndex, const int ver
 					  ( fragmentShaderIndex >= 0 ) ? fragmentShaders[ fragmentShaderIndex ].name.c_str() : "<Invalid>" );
 		return;
 	}
-	
+
 	if( r_useUniformArrays.GetBool() )
 	{
 		prog.vertexUniformArray = glGetUniformLocation( program, VERTEX_UNIFORM_ARRAY_NAME );

@@ -5517,7 +5517,7 @@ void RB_LensDeform() {
 		// 3D views only and not in subviews
 		return;
 	}
-	RENDERLOG_PRINTF( "---------- RB_Lens() ----------\n" );
+	RENDERLOG_PRINTF( "---------- RB_LensDeform() ----------\n" );
 
 	// resolve the scaled rendering to a temporary texture
 
