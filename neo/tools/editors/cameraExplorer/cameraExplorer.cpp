@@ -12,62 +12,39 @@
 #include "../../../renderer/RenderSystem.h"
 #include "../../../d3xp/gamesys/SysCvar.h"
 
+#include <stdio.h>
+
 namespace BFG
 {
 namespace Tools
 {
-
-CameraInfo::CameraInfo(){
-	//GatherCurrent();
-	Defaults();
-}
-
-void CameraInfo::Defaults() {
-	useLens = true;
-	lens_k	= -0.12f;
-	lens_kcube = 0.1f;
-	lens_chromatic = 1.12f;
-	fov	= 90;
-	/*
-	useMotionBlur = true;
-		bool	useHDR_MotionBlur;
-		float	MotionBlur_quality;
-		float	MotionBlur_angle;
-		//dof
-		//exposure
-
-		//imager
-		bool	useHDR;
-		float	gamma;
-	*/
-}
-void CameraInfo::GatherCurrent() {
-
-	useLens = r_useLens.GetBool();
-	lens_k = r_lens_k.GetFloat();
-	lens_kcube = r_lens_kcube.GetFloat();
-	lens_chromatic = r_lens_chromatic.GetFloat();
-	fov = g_fov.GetInteger();
-
-}
 
 blCameraExplorer blCameraExplorer::TheCameraExplorer;
 bool blCameraExplorer::ShowWindow = false;
 
 void blCameraExplorer::Init() {
 	Clear();
-	org.GatherCurrent();
+	GatherCurrent();
+	org_lens = cur_lens;
 }
 
 void blCameraExplorer::Clear() {
-	cur.GatherCurrent();
-	changes = false;
+    changes = false;
 	pause_changes = false;
+	ShowWindow = false;
+}
+
+void blCameraExplorer::GatherCurrent() {
+    cur_lens.lensAberration = r_useLens.GetBool();
+    cur_lens.lens_k = r_lens_k.GetFloat();
+	cur_lens.lens_kcube = r_lens_kcube.GetFloat();
+	cur_lens.lens_chromatic = r_lens_chromatic.GetFloat();
+	cur_lens.fov = g_fov.GetInteger();
 }
 
 void blCameraExplorer::OpenWindow() {
 	if( !ShowWindow ) {
-		common->Printf( "Camera Explorer initiated!\n" );
+		common->Printf( "\n  -- Camera Explorer pannel initiated --  \n\n" );
 		TheCameraExplorer.Init();
 		ShowWindow = true;
 	} else {
@@ -76,65 +53,102 @@ void blCameraExplorer::OpenWindow() {
 }
 
 void blCameraExplorer::CloseWindow() {
-	Clear();
-	common->Printf( "Camera Explorer closed!\n" );
+    Clear();
+	common->Printf( "  -- Camera Explorer pannel terminated -- \n\n" );
 	impl::SetReleaseToolMouse( false );
 }
 void blCameraExplorer::Update() {
 	TheCameraExplorer.Draw();
 }
 
-void blCameraExplorer::ApplyChanges( CameraInfo camInfo ) {
+void blCameraExplorer::BackToOriginal() {
+    cur_lens = org_lens;
+    ApplyChanges();
+}
 
-	g_fov.SetInteger( camInfo.fov );
-	r_useLens.SetBool( camInfo.useLens );
-	r_lens_k.SetFloat( camInfo.lens_k );
-	r_lens_kcube.SetFloat( camInfo.lens_kcube );
-	r_lens_chromatic.SetFloat( camInfo.lens_chromatic );
+void blCameraExplorer::ApplyChanges() {
+
+	g_fov.SetInteger( cur_lens.fov );
+	r_useLens.SetBool( cur_lens.lensAberration );
+	r_lens_k.SetFloat( cur_lens.lens_k );
+	r_lens_kcube.SetFloat( cur_lens.lens_kcube );
+	r_lens_chromatic.SetFloat( cur_lens.lens_chromatic );
 }
 void blCameraExplorer::Draw() {
 	bool ShowingWindow = ShowWindow;
-	CameraInfo endInfo;
-	if( ImGui::Begin( "Camera Explorer Window", &ShowingWindow, ImGuiWindowFlags_ShowBorders ) ) {
-
-		changes |= ImGui::SliderInt("Focal Of View", &cur.fov, 1, 180, "%.0f degrees");
-		ImGui::Spacing();
-		ImGui::Text( "LENS DISTORTION EFFECT" );
-		ImGui::Spacing();
-		changes |= ImGui::Checkbox( "lens distort", &cur.useLens);
-		ImGui::Spacing();
+	if( ImGui::Begin( "Camera Explorer pannel", &ShowingWindow, ImGuiWindowFlags_ShowBorders ) ) {
+	ImGui::Spacing();
+	    char buffer [5];
+	    sprintf ( buffer, "%.0d", org_lens.fov );
+	    idStr number = buffer;
+	    idStr SliderTitle = " Focal Of View ( " + number + ")";
+		ImGui::SliderInt( SliderTitle, &cur_lens.fov, 1, 180, "%.0f degrees" );
+	ImGui::Spacing();
+	ImGui::Spacing();
+		ImGui::Checkbox( "use lens aberration", &cur_lens.lensAberration);
+	ImGui::Spacing();
 		ImGui::Text( "parameters:" );
-		ImGui::Spacing();
-		changes |= ImGui::SliderFloat( "k", &cur.lens_k, -15.0f, 5.0f, "%.2f", 2.0f );
-		ImGui::Spacing();
-		changes |= ImGui::SliderFloat( "kcube", &cur.lens_kcube, -15.0f, 10.0f, "%.2f", 2.0f );
-		ImGui::Spacing();
-		changes |= ImGui::SliderFloat( "Chromatic aberration", &cur.lens_chromatic, -5.0f, 5.0f, "%.2f", 2.0f );
-		ImGui::Spacing();
+	ImGui::Spacing();
+	    sprintf ( buffer, "%.2f", org_lens.lens_k );
+	    number = buffer;
+	    SliderTitle =" k ( " + number + ")";
+		ImGui::SliderFloat( SliderTitle, &cur_lens.lens_k, -15.0f, 5.0f, "%.2f", 2.0f );
+	ImGui::Spacing();
+	    sprintf ( buffer, "%.2f", org_lens.lens_kcube );
+	    number = buffer;
+	    SliderTitle = " kcube ( " + number + ")";
+		ImGui::SliderFloat( SliderTitle, &cur_lens.lens_kcube, -15.0f, 10.0f, "%.2f", 2.0f );
+	ImGui::Spacing();
+	    sprintf ( buffer, "%.2f", org_lens.lens_chromatic );
+	    number = buffer;
+	    SliderTitle = " Chromatic aberration ( " + number + ")";
+		ImGui::SliderFloat( SliderTitle, &cur_lens.lens_chromatic, -5.0f, 5.0f, "%.2f", 2.0f );
+	ImGui::Spacing();
+	    //decide if we are changing anything
+	    changes = false;
+	    changes |= ( cur_lens.fov != org_lens.fov );
+	    changes |= ( cur_lens.lensAberration != org_lens.lensAberration );
+	    changes |= ( cur_lens.lens_k != org_lens.lens_k );
+	    changes |= ( cur_lens.lens_kcube != org_lens.lens_kcube );
+	    changes |= ( cur_lens.lens_chromatic != org_lens.lens_chromatic );
 		ImGui::Text( "you can test several effects at once by pausing the changes,\nalso, you can discard the changes and go back to the initial values." );
-		ImGui::Spacing();
-		if( ImGui::Button( "Apply" ) ) {
-			pause_changes = false; // so the last changes eventually get applied
-			ShowingWindow = false;
-
-		}
-		ImGui::SameLine();
-		if( ImGui::Button( "Discard" ) ) {
-			pause_changes = false; //force that last change
-			ShowingWindow = false;
-			endInfo = org;
-		} else {
+	ImGui::Spacing();
+		if( ImGui::Button( " Apply " ) ) {
+			//only apply changes when there are changes
 			if( changes ) {
-				endInfo = cur;
+			    common->Printf( "  Camera Explorer pannel : Applying changes.\n" );
+			    ApplyChanges();
+			    org_lens = cur_lens;
+			    changes = false;
+			} else {
+			    common->Printf( "  Camera Explorer pannel : No changes to apply.\n" );
 			}
 		}
-		ImGui::SameLine();
+	ImGui::SameLine();
+	    idStr discardButton;
+	    if( !changes  ) {
+			discardButton = " Cancel ";
+		} else {
+			discardButton = " Discard ";
+		}
+
+		if( ImGui::Button( discardButton ) ) {
+			if( changes ) {
+			    common->Printf( "  Camera Explorer pannel : Discarding changes.\n" );
+			    BackToOriginal();
+			    ApplyChanges();
+			}
+
+			CloseWindow();
+		}
+	ImGui::SameLine();
 		idStr changeButton;
 		if( !pause_changes  ) {
-			changeButton = "pause changes";
+			changeButton = " pause changes ";
 		} else {
-			changeButton = "un-pause changes";
+			changeButton = " un-pause changes ";
 		}
+
 		if( ImGui::Button( changeButton ) ) {
 			if( !pause_changes  ) {
 				pause_changes = true;
@@ -143,19 +157,29 @@ void blCameraExplorer::Draw() {
 			}
 		}
 
-		if( changes  && !pause_changes ) {
-			ApplyChanges( endInfo );
-		}
 
+		/*if( changes  && !pause_changes ) {
+			ApplyChanges();
+		}*/
+		if( !pause_changes ) {
+		    ApplyChanges();
+		}
 	}
 	ImGui::End();
 
-	if( ShowWindow && !ShowingWindow )
-		{
-			// TODO: do the same as when pressing cancel?
-			ShowWindow = ShowingWindow;
-			CloseWindow();
+    //thise is only called when closing with the closing window gadget
+	if( ShowWindow && !ShowingWindow ) {
+	    if( !changes ) {
+	        common->Printf( "  Camera Explorer pannel : windows closed.\n" );
+	    } else {
+	        common->Printf( "  Camera Explorer pannel : windows closed discarding changes.\n" );
+		    BackToOriginal();
+		    ApplyChanges();
 		}
+		//ShowWindow = ShowingWindow;
+	    CloseWindow();
+
+	}
 }
 
 } //namespace Tools
