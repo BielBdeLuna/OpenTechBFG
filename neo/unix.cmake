@@ -71,6 +71,7 @@ if(BREAKPAD)
   link_directories(${CMAKE_BINARY_DIR}/libs/breakpad)
 endif()
 
+
 list(REMOVE_DUPLICATES OpenTechBFG_SOURCES)
 
 GET_DIRECTORY_PROPERTY(_directory_flags DEFINITIONS)

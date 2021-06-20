@@ -2,18 +2,20 @@
  * this file is GPLv3
  */
 
-#include "editors/cameraExplorer/cameraExplorer.h"
-#include "../imgui/BFGimgui.h"
-#include "../idlib/CmdArgs.h"
 
-#include "editors/LightEditor.h"
+#include "../imgui/BFGimgui.h"
+
+#include "Tools.h"
+#include "ToolsInput.h"
+
+#include "./editors/lightEditor/LightEditor.h"
+#include "./editors/cameraExplorer/cameraExplorer.h"
 
 namespace BFG
 {
 
-extern idCVar g_editEntityMode;
+//extern idCVar g_editEntityMode;
 
-static bool releaseMouse = false;
 #if 0 // currently this doesn't make too much sense
 void ShowEditors_f( const idCmdArgs& args )
 {
@@ -21,9 +23,6 @@ void ShowEditors_f( const idCmdArgs& args )
 }
 #endif // 0
 
-void CameraExplorer_f( const idCmdArgs& args ) {
-	Tools::CameraExplorerInit();
-}
 
 namespace Tools
 {
@@ -32,12 +31,16 @@ namespace Tools
 namespace impl
 {
 
-void SetReleaseToolMouse( bool doRelease )
+void ReleaseToolMouse( bool doRelease )
 {
 	releaseMouse = doRelease;
 }
 
 } //namespace impl
+
+
+static OTE_CameraExplorer TheCameraExplorer;
+//static LightEditor TheLightEditor; // FIXME: maybe at some point we could allow more than one..
 
 bool AreEditorsActive()
 {
@@ -56,43 +59,49 @@ void DrawToolWindows()
 {
 #if 0
 	ImGui::Begin( "Show Ingame Editors", &showToolWindows, 0 );
-	
+
 	ImGui::Checkbox( "Light", &LightEdicameraExp.tor::showIt );
 	ImGui::SameLine();
 	ImGui::Checkbox( "Particle", &showParticlesEditor );
 #endif // 0
+    /*
+	if( TheLightEditor.showIt )
+	{
+		TheLightEditor.Draw();
+	}
+	*/
+	if( TheCameraExplorer.ShowWindow )
+	{
+		TheCameraExplorer.Update();
+	}
 
-	if( LightEditor::showIt )
-	{
-		LightEditor::Draw();
-	}
-	if( blCameraExplorer::ShowWindow )
-	{
-		blCameraExplorer::Update();
-	}
-	
 	// TODO: other editor windows..
 	//ImGui::End();
 }
-void CameraExplorerInit() {
-	impl::SetReleaseToolMouse( true );
-	blCameraExplorer::OpenWindow();
-}
-
+/*
 void LightEditorInit( const idDict* dict, idEntity* ent )
 {
 	if( dict == NULL || ent == NULL ) return;
-	
+
 	// NOTE: we can't access idEntity (it's just a declaration), because it should
 	// be game/mod specific. but we can at least check the spawnclass from the dict.
 	idassert( idStr::Icmp( dict->GetString( "spawnclass" ), "idLight" ) == 0
 			  && "LightEditorInit() must only be called with light entities or NULL!" );
-			  
-			  
-	LightEditor::showIt = true;
-	impl::SetReleaseToolMouse( true );
-	
-	LightEditor::ReInit( dict, ent );
+
+    impl::ReleaseToolMouse( true );
+	TheLightEditor.showIt = true;
+	TheLightEditor.ReInit( dict, ent );
 }
+*/
+void CameraExplorerInit() {
+    ;
+}
+
 } //namespace Tools
+
+void CameraExplorer_f( const idCmdArgs& args ) {
+	//Tools::impl::ReleaseToolMouse( true );
+	Tools::TheCameraExplorer.HandleKeyInput(); // TheCameraExplorer defined after the class definition
+}
+
 } //namespace BFG

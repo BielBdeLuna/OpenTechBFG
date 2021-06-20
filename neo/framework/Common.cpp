@@ -423,7 +423,10 @@ void idCommonLocal::InitTool( const toolFlag_t tool, const idDict* dict, idEntit
 	}
 	else if( tool & EDITOR_LIGHT )
 	{
-		Tools::LightEditorInit( dict, entity );
+		//Tools::LightEditorInit( dict, entity ); //TODO: reimplemnt this in the future
+	}
+	else if( tool & EDITOR_CAMERA ) {
+	    Tools::CameraExplorerInit();
 	}
 	else if( tool & EDITOR_PARTICLE )
 	{

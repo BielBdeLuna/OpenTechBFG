@@ -8,19 +8,28 @@ file(GLOB COMPILER_AAS_SOURCES tools/compilers/aas/*.cpp)
 file(GLOB COMPILER_DMAP_INCLUDES tools/compilers/dmap/*.h)
 file(GLOB COMPILER_DMAP_SOURCES tools/compilers/dmap/*.cpp)
 
-set(TOOLS_INCLUDES tools/edit_public.h)
+#set(TOOLS_INCLUDES tools/edit_public.h)
 
-set(TOOLS_COMMON_INCLUDES
-  tools/Tools.h)
+#set(TOOLS_COMMON_INCLUDES
+#  tools/Tools.h
+#  tools/ToolsInput.h)
+
+file(GLOB TOOLS_COMMON_INCLUDES tools/*.h)
 
 set(TOOLS_COMMON_SOURCES
-  tools/ToolGui.cpp)
+  tools/Tools.cpp)
 
 file(GLOB EDITOR_INCLUDES tools/editors/*.h)
 file(GLOB EDITOR_SOURCES tools/editors/*.cpp)
 
+file(GLOB EDITOR_LIGHTEDITOR_INCLUDES tools/lightEditor/*.h)
+file(GLOB EDITOR_LIGHTEDITOR_SOURCES tools/lightEditor/*.cpp)
+
 file(GLOB EDITOR_CAMERAEXPLORER_INCLUDES tools/editors/cameraExplorer/*.h)
 file(GLOB EDITOR_CAMERAEXPLORER_SOURCES tools/editors/cameraExplorer/*.cpp)
+
+source_group("tools" FILES ${TOOLS_COMMON_INCLUDES})
+source_group("tools" FILES ${TOOLS_COMMON_SOURCES})
 
 source_group("tools\\compilers" FILES ${COMPILER_INCLUDES})
 
@@ -33,6 +42,9 @@ source_group("tools\\compilers\\dmap" FILES ${COMPILER_DMAP_SOURCES})
 source_group("tools\\editors" FILES ${EDITOR_INCLUDES})
 source_group("tools\\editors" FILES ${EDITOR_SOURCES})
 
+source_group("tools\\editors\\lightEditor" FILES ${EDITOR_LIGHTEDITOR_INCLUDES})
+source_group("tools\\editors\\lightEditor" FILES ${EDITOR_LIGHTEDITOR_SOURCES})
+
 source_group("tools\\editors\\cameraExplorer" FILES ${EDITOR_CAMERAEXPLORER_INCLUDES})
 source_group("tools\\editors\\cameraExplorer" FILES ${EDITOR_CAMERAEXPLORER_SOURCES})
 
@@ -43,6 +55,7 @@ set(IDTOOLS_INCLUDES
   ${COMPILER_AAS_INCLUDES} # ${COMPILER_AAS_SOURCES}
   ${COMPILER_DMAP_INCLUDES} # ${COMPILER_DMAP_SOURCES}
   ${EDITOR_INCLUDES}
+  ${EDITOR_LIGHTEDITOR_INCLUDES}
   ${EDITOR_CAMERAEXPLORER_INCLUDES} # ${EDITOR_CAMERAEXPLORER_SOURCES}
   )
 
@@ -51,5 +64,6 @@ set(IDTOOLS_SOURCES
   ${COMPILER_AAS_SOURCES}
   ${COMPILER_DMAP_SOURCES}
   ${EDITOR_SOURCES}
+  ${EDITOR_LIGHTEDITOR_SOURCES}
   ${EDITOR_CAMERAEXPLORER_SOURCES}
   )
