@@ -65,6 +65,7 @@ If you have questions concerning this license or the applicable additional terms
 
 #include "../../imgui/ImGui_Hooks.h"
 #include "tools/Tools.h"
+#include "tools/ToolsInput.h"
 
 #if !SDL_VERSION_ATLEAST(2, 0, 0)
 #define SDL_Keycode SDLKey

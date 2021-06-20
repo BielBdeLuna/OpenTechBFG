@@ -9,21 +9,20 @@
 #ifndef __CAMERA_EXPLORER_H_
 #define __CAMERA_EXPLORER_H_
 
-#include "../../Tools.h"
+#include "../../../idlib/Str.h"
 
 namespace BFG
 {
 namespace Tools
 {
-void CameraExplorer_f();
+//void CameraExplorer_f();
 
 struct cameraInfo_lens_t {
-  bool 	lensAberration;
+  bool  lensAberration;
 	float lens_k;
 	float lens_kcube;
 	float lens_chromatic;
-	int		fov;
-
+	int   fov;
 };
 
 struct cameraInfo_t {
@@ -62,25 +61,29 @@ struct cameraInfo_t {
 
 };
 
-class blCameraExplorer {
+class OTE_CameraExplorer {
 public:
-	static void OpenWindow();
-	static void Update();
-	static bool ShowWindow;
+  OTE_CameraExplorer();
+  void HandleKeyInput();
+
+	void Update();
+	bool ShowWindow;
 private:
-	bool changes;
-	bool pause_changes;
-	void Init();
+
+  void OpenWindow();
 	void Clear();
 	void Draw();
 	void ApplyChanges();
 	void CloseWindow();
   void GatherCurrent();
-  void BackToOriginal();
+  void BackToSaved();
+  void DiscardChanges( idStr message );
 
+  bool changes;
+	bool pause_changes;
 	cameraInfo_lens_t cur_lens;
-	cameraInfo_lens_t org_lens;
-	static blCameraExplorer TheCameraExplorer;
+	cameraInfo_lens_t saved_lens;
+
 };
 
 } //namespace Tools

@@ -34,7 +34,7 @@ If you have questions concerning this license or the applicable additional terms
 #define NEO_TOOLS_EDITORS_LIGHTEDITOR_H_
 
 #include <idlib/Dict.h>
-#include "../Tools.h"
+//#include "../../Tools.h"
 
 namespace BFG
 {
@@ -56,27 +56,27 @@ public:
 	idVec3		lightTarget;
 	idVec3		lightCenter;
 	idVec3		color;
-	
-	
+
+
 #if 0 // FIXME: unused, delete?
 	bool		fog;
 	idVec4		fogDensity;
-	
+
 	bool		strobe;
 	float		strobeSpeed;
 	bool		rotate;
 	float		rotateSpeed;
 #endif // 0
-	
+
 	idVec3		lightRadius;
 	bool		castShadows;
 	bool		castSpecular;
 	bool		castDiffuse;
 	bool		hasCenter;
 	bool		isParallel;
-	
+
 	LightInfo();
-	
+
 	void		Defaults();
 	void		DefaultProjected();
 	void		DefaultPoint();
@@ -86,43 +86,37 @@ public:
 
 class LightEditor
 {
+public:
+  LightEditor();
+
+  static void ReInit( const idDict* dict, idEntity* light );
+	static void Draw();
+	static bool showIt;
+private:
 	idStr title;
 	idStr entityName;
 	LightInfo original;
 	LightInfo cur; // current status of the light
-	
+
 	idEntity* lightEntity;
-	
+
 	idList<idStr> textureNames;
 	int currentTextureIndex;
 	idImage* currentTexture;
-	
+
 	void Init( const idDict* dict, idEntity* light );
 	void Reset();
-	
+
 	void LoadLightTextures();
 	static bool TextureItemsGetter( void* data, int idx, const char** out_text );
 	void LoadCurrentTexture();
-	
+
 	void DrawWindow();
-	
+
 	void TempApplyChanges();
 	void SaveChanges();
 	void CancelChanges();
-	
-	LightEditor()
-	{
-		Reset();
-	}
-	
-	static LightEditor TheLightEditor; // FIXME: maybe at some point we could allow more than one..
-	
-public:
-	static void ReInit( const idDict* dict, idEntity* light );
-	
-	static void Draw();
-	
-	static bool showIt;
+
 };
 
 } //namespace Tools

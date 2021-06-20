@@ -9,32 +9,48 @@
 #include "../cameraExplorer/cameraExplorer.h"
 #include "../../../imgui/BFGimgui.h"
 
-#include "../../../renderer/RenderSystem.h"
-#include "../../../d3xp/gamesys/SysCvar.h"
+#include "renderer/RenderSystem.h"
+#include "d3xp/gamesys/SysCvar.h"
 
-#include <stdio.h>
+#include "../../ToolsInput.h"
 
 namespace BFG
 {
 namespace Tools
 {
 
-blCameraExplorer blCameraExplorer::TheCameraExplorer;
-bool blCameraExplorer::ShowWindow = false;
+//bool OTE_CameraExplorer::ShowWindow = false;
 
-void blCameraExplorer::Init() {
-	Clear();
-	GatherCurrent();
-	org_lens = cur_lens;
+OTE_CameraExplorer::OTE_CameraExplorer() {
+    Clear();
 }
 
-void blCameraExplorer::Clear() {
+void OTE_CameraExplorer::HandleKeyInput() {
+    if( ShowWindow ) {
+        if( changes ) {
+            DiscardChanges( "  Camera Explorer pannel : pannel key pressed, discarding changes.\n" );
+        }
+        CloseWindow();
+    } else {
+        ShowWindow = true;
+        Clear();
+        OpenWindow();
+    }
+}
+
+void OTE_CameraExplorer::DiscardChanges( idStr message ) {
+    common->Printf( message );
+	BackToSaved();
+	ApplyChanges();
+}
+
+void OTE_CameraExplorer::Clear() {
     changes = false;
 	pause_changes = false;
 	ShowWindow = false;
 }
 
-void blCameraExplorer::GatherCurrent() {
+void OTE_CameraExplorer::GatherCurrent() {
     cur_lens.lensAberration = r_useLens.GetBool();
     cur_lens.lens_k = r_lens_k.GetFloat();
 	cur_lens.lens_kcube = r_lens_kcube.GetFloat();
@@ -42,31 +58,26 @@ void blCameraExplorer::GatherCurrent() {
 	cur_lens.fov = g_fov.GetInteger();
 }
 
-void blCameraExplorer::OpenWindow() {
-	if( !ShowWindow ) {
-		common->Printf( "\n  -- Camera Explorer pannel initiated --  \n\n" );
-		TheCameraExplorer.Init();
-		ShowWindow = true;
-	} else {
-		ShowWindow = false;
-	}
+void OTE_CameraExplorer::OpenWindow() {
+    impl::ReleaseToolMouse( true );
+    ShowWindow = true;
+	common->Printf( "\n  -- Camera Explorer pannel initiated --  \n\n" );
+    GatherCurrent();
+	saved_lens = cur_lens;
 }
 
-void blCameraExplorer::CloseWindow() {
+void OTE_CameraExplorer::CloseWindow() {
+    impl::ReleaseToolMouse( false );
     Clear();
 	common->Printf( "  -- Camera Explorer pannel terminated -- \n\n" );
-	impl::SetReleaseToolMouse( false );
-}
-void blCameraExplorer::Update() {
-	TheCameraExplorer.Draw();
 }
 
-void blCameraExplorer::BackToOriginal() {
-    cur_lens = org_lens;
+void OTE_CameraExplorer::BackToSaved() {
+    cur_lens = saved_lens;
     ApplyChanges();
 }
 
-void blCameraExplorer::ApplyChanges() {
+void OTE_CameraExplorer::ApplyChanges() {
 
 	g_fov.SetInteger( cur_lens.fov );
 	r_useLens.SetBool( cur_lens.lensAberration );
@@ -74,51 +85,38 @@ void blCameraExplorer::ApplyChanges() {
 	r_lens_kcube.SetFloat( cur_lens.lens_kcube );
 	r_lens_chromatic.SetFloat( cur_lens.lens_chromatic );
 }
-void blCameraExplorer::Draw() {
-	bool ShowingWindow = ShowWindow;
-	if( ImGui::Begin( "Camera Explorer pannel", &ShowingWindow, ImGuiWindowFlags_ShowBorders ) ) {
+void OTE_CameraExplorer::Draw() {
+	bool windowReaminOpen = ShowWindow;
+	if( ImGui::Begin( "Camera Explorer pannel", &windowReaminOpen, ImGuiWindowFlags_ShowBorders ) ) {
 	ImGui::Spacing();
-	    char buffer [5];
-	    sprintf ( buffer, "%.0d", org_lens.fov );
-	    idStr number = buffer;
-	    idStr SliderTitle = " Focal Of View ( " + number + ")";
-		ImGui::SliderInt( SliderTitle, &cur_lens.fov, 1, 180, "%.0f degrees" );
+	    ImGui::SliderInt( "Focal Of View", &cur_lens.fov, 1, 180, "%.0f degrees" );
 	ImGui::Spacing();
 	ImGui::Spacing();
 		ImGui::Checkbox( "use lens aberration", &cur_lens.lensAberration);
 	ImGui::Spacing();
 		ImGui::Text( "parameters:" );
 	ImGui::Spacing();
-	    sprintf ( buffer, "%.2f", org_lens.lens_k );
-	    number = buffer;
-	    SliderTitle =" k ( " + number + ")";
-		ImGui::SliderFloat( SliderTitle, &cur_lens.lens_k, -15.0f, 5.0f, "%.2f", 2.0f );
+	    ImGui::SliderFloat( "k", &cur_lens.lens_k, -15.0f, 5.0f, "%.2f", 2.0f );
 	ImGui::Spacing();
-	    sprintf ( buffer, "%.2f", org_lens.lens_kcube );
-	    number = buffer;
-	    SliderTitle = " kcube ( " + number + ")";
-		ImGui::SliderFloat( SliderTitle, &cur_lens.lens_kcube, -15.0f, 10.0f, "%.2f", 2.0f );
+		ImGui::SliderFloat( "kcube", &cur_lens.lens_kcube, -15.0f, 10.0f, "%.2f", 2.0f );
 	ImGui::Spacing();
-	    sprintf ( buffer, "%.2f", org_lens.lens_chromatic );
-	    number = buffer;
-	    SliderTitle = " Chromatic aberration ( " + number + ")";
-		ImGui::SliderFloat( SliderTitle, &cur_lens.lens_chromatic, -5.0f, 5.0f, "%.2f", 2.0f );
+		ImGui::SliderFloat( "Chromatic aberration", &cur_lens.lens_chromatic, -5.0f, 5.0f, "%.2f", 2.0f );
 	ImGui::Spacing();
 	    //decide if we are changing anything
 	    changes = false;
-	    changes |= ( cur_lens.fov != org_lens.fov );
-	    changes |= ( cur_lens.lensAberration != org_lens.lensAberration );
-	    changes |= ( cur_lens.lens_k != org_lens.lens_k );
-	    changes |= ( cur_lens.lens_kcube != org_lens.lens_kcube );
-	    changes |= ( cur_lens.lens_chromatic != org_lens.lens_chromatic );
+	    changes |= ( cur_lens.fov != saved_lens.fov );
+	    changes |= ( cur_lens.lensAberration != saved_lens.lensAberration );
+	    changes |= ( cur_lens.lens_k != saved_lens.lens_k );
+	    changes |= ( cur_lens.lens_kcube != saved_lens.lens_kcube );
+	    changes |= ( cur_lens.lens_chromatic != saved_lens.lens_chromatic );
 		ImGui::Text( "you can test several effects at once by pausing the changes,\nalso, you can discard the changes and go back to the initial values." );
 	ImGui::Spacing();
-		if( ImGui::Button( " Apply " ) ) {
+		if( ImGui::Button( " Apply & Save " ) ) {
 			//only apply changes when there are changes
 			if( changes ) {
-			    common->Printf( "  Camera Explorer pannel : Applying changes.\n" );
+			    common->Printf( "  Camera Explorer pannel : Applying changes, and saving them.\n" );
 			    ApplyChanges();
-			    org_lens = cur_lens;
+			    saved_lens = cur_lens;
 			    changes = false;
 			} else {
 			    common->Printf( "  Camera Explorer pannel : No changes to apply.\n" );
@@ -134,9 +132,7 @@ void blCameraExplorer::Draw() {
 
 		if( ImGui::Button( discardButton ) ) {
 			if( changes ) {
-			    common->Printf( "  Camera Explorer pannel : Discarding changes.\n" );
-			    BackToOriginal();
-			    ApplyChanges();
+			    DiscardChanges( "  Camera Explorer pannel : Discarding changes back to the last saved.\n" );
 			}
 
 			CloseWindow();
@@ -156,29 +152,28 @@ void blCameraExplorer::Draw() {
 				pause_changes = false;
 			}
 		}
-
-
-		/*if( changes  && !pause_changes ) {
-			ApplyChanges();
-		}*/
-		if( !pause_changes ) {
-		    ApplyChanges();
-		}
 	}
 	ImGui::End();
 
     //thise is only called when closing with the closing window gadget
-	if( ShowWindow && !ShowingWindow ) {
+	if( ShowWindow && !windowReaminOpen ) {
 	    if( !changes ) {
 	        common->Printf( "  Camera Explorer pannel : windows closed.\n" );
 	    } else {
-	        common->Printf( "  Camera Explorer pannel : windows closed discarding changes.\n" );
-		    BackToOriginal();
-		    ApplyChanges();
+            DiscardChanges( "  Camera Explorer pannel : windows closed, discarding changes.\n" );
 		}
-		//ShowWindow = ShowingWindow;
 	    CloseWindow();
+	}
+}
 
+void OTE_CameraExplorer::Update() {
+
+    //draw the window
+	Draw();
+
+	//apply changes if we have to
+	if( !pause_changes ) {
+	    ApplyChanges();
 	}
 }
 

@@ -67,6 +67,7 @@ bool ImGui::DragVec3fitLabel( const char* label, BFG::idVec3& v, float v_speed,
 #include <GL/glew.h> // for gl* in the rendering code
 
 #include "../tools/Tools.h" // FIXME: HACKY!
+#include "../tools/ToolsInput.h"
 #include "../framework/KeyInput.h"
 #include "../framework/UsercmdGen.h"
 #include "../sys/sys_public.h"

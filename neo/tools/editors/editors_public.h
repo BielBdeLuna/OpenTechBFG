@@ -13,6 +13,7 @@ namespace BFG
 {
 
 //void LightEditor_f( const idCmdArgs& args );
+
 void CameraExplorer_f( const idCmdArgs& args );
 
 } // namespace BFG
