@@ -12,10 +12,11 @@
 // in moddable doom3 Game.h was in framework/ and not to be modified by mods
 // we need it for GameEdit definition and idEntity declaration
 #include <d3xp/Game.h>
-//#include "../d3xp/Game.h"
 
-#include "./compilers/compiler_public.h"
-#include "./editors/editors_public.h"
+
+#include "compilers/compiler_public.h"
+#include "editors/editors_public.h"
+#include "helpers/helpers_public.h"
 
 namespace BFG
 {
@@ -32,6 +33,8 @@ void DrawToolWindows();
 //void LightEditorInit( const idDict* dict, idEntity* entity );
 
 void CameraExplorerInit();
+
+void helper_RenderStatsToggle();
 
 }//namespace tools
 }//namespace BFG

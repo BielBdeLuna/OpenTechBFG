@@ -15,7 +15,7 @@ add_definitions(-fwrapv)
 
 ## Warnings
 # Enabling, the order is important
-add_definitions(-Wall)
+#add_definitions(-Wall)
 # add_definitions(-Wextra)
 add_definitions(-Wundef)
 add_definitions(-Winvalid-pch)

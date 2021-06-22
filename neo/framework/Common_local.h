@@ -161,6 +161,7 @@ public:
 	// Initializes a tool with the given dictionary.
 	virtual void				InitTool( const toolFlag_t tool, const idDict* dict, idEntity* entity );
 	// DG end
+  virtual void        InitHelper( const helperFlag_t helper, const idDict* dict, idEntity* entity );
 	
 	virtual void				WriteConfigToFile( const char* filename );
 	virtual void				BeginRedirect( char* buffer, int buffersize, void ( *flush )( const char* ) );

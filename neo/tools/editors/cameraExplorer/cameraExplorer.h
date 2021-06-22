@@ -9,6 +9,7 @@
 #ifndef __CAMERA_EXPLORER_H_
 #define __CAMERA_EXPLORER_H_
 
+//#include <idlib/Str.h>
 #include "../../../idlib/Str.h"
 
 namespace BFG
@@ -61,20 +62,22 @@ struct cameraInfo_t {
 
 };
 
-class OTE_CameraExplorer {
+class cameraExplorerPannel {
 public:
-  OTE_CameraExplorer();
-  void HandleKeyInput();
+  cameraExplorerPannel();
 
+  void HandleKeyInput();
 	void Update();
-	bool ShowWindow;
+  void RequestClose( idStr message );
+
+  bool PannelPresent;
 private:
 
-  void OpenWindow();
 	void Clear();
 	void Draw();
+  void OpenPannel();
+	void ClosePannel();
 	void ApplyChanges();
-	void CloseWindow();
   void GatherCurrent();
   void BackToSaved();
   void DiscardChanges( idStr message );

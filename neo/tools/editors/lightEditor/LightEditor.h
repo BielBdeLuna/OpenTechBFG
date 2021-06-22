@@ -34,7 +34,8 @@ If you have questions concerning this license or the applicable additional terms
 #define NEO_TOOLS_EDITORS_LIGHTEDITOR_H_
 
 #include <idlib/Dict.h>
-//#include "../../Tools.h"
+#include "../../Tools.h"
+#include "../../ToolsInput.h"
 
 namespace BFG
 {

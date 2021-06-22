@@ -8,8 +8,9 @@
 #include "Tools.h"
 #include "ToolsInput.h"
 
-#include "./editors/lightEditor/LightEditor.h"
-#include "./editors/cameraExplorer/cameraExplorer.h"
+#include "editors/lightEditor/LightEditor.h"
+#include "editors/cameraExplorer/cameraExplorer.h"
+#include "helpers/renderStats/renderStats.h"
 
 namespace BFG
 {
@@ -39,8 +40,9 @@ void ReleaseToolMouse( bool doRelease )
 } //namespace impl
 
 
-static OTE_CameraExplorer TheCameraExplorer;
+static cameraExplorerPannel CameraExplorerPannel;
 //static LightEditor TheLightEditor; // FIXME: maybe at some point we could allow more than one..
+static renderStatsPannel RenderStatsPannel;
 
 bool AreEditorsActive()
 {
@@ -70,11 +72,14 @@ void DrawToolWindows()
 		TheLightEditor.Draw();
 	}
 	*/
-	if( TheCameraExplorer.ShowWindow )
+	if( CameraExplorerPannel.PannelPresent )
 	{
-		TheCameraExplorer.Update();
+		CameraExplorerPannel.Update();
 	}
 
+    if( RenderStatsPannel.PannelPresent ) {
+        RenderStatsPannel.Update();
+    }
 	// TODO: other editor windows..
 	//ImGui::End();
 }
@@ -97,11 +102,15 @@ void CameraExplorerInit() {
     ;
 }
 
+void helper_RenderStatsToggle() {
+    RenderStatsPannel.Toggle();
+}
+
 } //namespace Tools
 
 void CameraExplorer_f( const idCmdArgs& args ) {
 	//Tools::impl::ReleaseToolMouse( true );
-	Tools::TheCameraExplorer.HandleKeyInput(); // TheCameraExplorer defined after the class definition
+	Tools::CameraExplorerPannel.HandleKeyInput(); // CameraExplorerPannel defined after the class definition
 }
 
 } //namespace BFG
