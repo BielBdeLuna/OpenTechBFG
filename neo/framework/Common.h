@@ -142,6 +142,13 @@ typedef enum
   EDITOR_CAMERA       = BIT( 12 )
 } toolFlag_t;
 
+typedef enum
+{
+  HELPER_NONE           = 0,
+  HELPER_RENDERSTATS    = BIT( 1 ),
+  HELPER_MEMORYMANAGER  = BIT( 2 )
+} helperFlag_t;
+
 #define STRTABLE_ID				"#str_"
 #define STRTABLE_ID_LENGTH		5
 
@@ -234,6 +241,8 @@ public:
 	// Initializes a tool with the given dictionary.
 	virtual void				InitTool( const toolFlag_t tool, const idDict* dict, idEntity* entity ) = 0;
 	// DG end
+
+  virtual void        InitHelper( const helperFlag_t helper, const idDict* dict, idEntity* entity ) = 0;
 	
 	// Begins redirection of console output to the given buffer.
 	virtual void				BeginRedirect( char* buffer, int buffersize, void ( *flush )( const char* ) ) = 0;

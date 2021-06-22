@@ -438,6 +438,15 @@ void idCommonLocal::InitTool( const toolFlag_t tool, const idDict* dict, idEntit
 	}
 #endif
 }
+
+void idCommonLocal::InitHelper( const helperFlag_t helper, const idDict* dict, idEntity* entity ) {
+#ifdef ID_ALLOW_TOOLS
+    if( helper & HELPER_RENDERSTATS )
+	{
+		Tools::helper_RenderStatsToggle();
+	}
+#endif
+}
 // DG end
 
 /*

@@ -29,7 +29,7 @@ If you have questions concerning this license or the applicable additional terms
 
 #include "LightEditor.h"
 
-#include "../../imgui/BFGimgui.h"
+#include <imgui/BFGimgui.h>
 
 #include "../../../renderer/Material.h"
 #include "../../../renderer/Image.h"

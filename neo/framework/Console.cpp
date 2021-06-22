@@ -1347,6 +1347,7 @@ void idConsoleLocal::Draw( bool forceFullScreen )
 	if( com_showFPS.GetBool() )
 	{
 		righty = DrawFPS( righty );
+
 	}
 	if( com_showMemoryUsage.GetBool() )
 	{
@@ -1354,6 +1355,10 @@ void idConsoleLocal::Draw( bool forceFullScreen )
 	}
 	DrawOverlayText( lefty, righty, centery );
 	DrawDebugGraphs();
+
+	//draw the new helpers
+	common->InitHelper( HELPER_RENDERSTATS, NULL, NULL );
+	//common->InitHelper( HELPER_MEMORYMANAGER, NULL, NULL ); //TODO
 }
 
 /*
